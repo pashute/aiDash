@@ -1,5 +1,8 @@
 # aiDash - Dashboards for AI integration
 
+Version 1.1
+
+
 UI with DOM manipulation through Fetch API, interacting with short AI changes, 
 limited to sections of the view. 
 
