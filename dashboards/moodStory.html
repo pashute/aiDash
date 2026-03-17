@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aiDash - moodStory v1.4.6</title>
+    <title>aiDash - moodStory v1.4.7 (testing initAPI in function)</title>
     <style>
         :root { --accent: #00ff88; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --sad-blue: #3498db; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
@@ -94,7 +94,7 @@
         else {
             genAI = new GoogleGenerativeAI(key);
             // Ensuring we use the working preview string from your successful test
-            model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-preview" });
+            model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
             log("BOOT", "Sequential Logic Core Online.");
         }
     }
