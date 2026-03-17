@@ -3,91 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aiDash - moodStory v1.3.1</title>
+    <title>aiDash - moodStory v1.4.6</title>
     <style>
         :root { --accent: #00ff88; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --sad-blue: #3498db; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
-        
-        .dashboard { background: var(--card); padding: 2rem; border-radius: 24px; width: 700px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #333; position: relative; display: grid; grid-template-columns: 80px 1fr; gap: 20px; }
+        .dashboard { background: var(--card); padding: 2rem; border-radius: 24px; width: 750px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #333; position: relative; display: grid; grid-template-columns: 80px 1fr; gap: 20px; }
         .version-tag { position: absolute; top: 10px; right: 20px; font-size: 0.65rem; color: #f5f5f5; font-family: monospace; opacity: 0.7; }
         
-        /* Vertical Slider Styling */
-        .slider-box { display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; }
-        input[type=range].vertical { appearance: none; width: 8px; height: 300px; background: linear-gradient(to top, var(--sad-blue), var(--accent)); border-radius: 5px; writing-mode: bt-lr; appearance: slider-vertical; }
+        /* Slider & Layout */
+        .slider-box { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        input[type=range].vertical { appearance: none; width: 8px; height: 350px; background: linear-gradient(to top, var(--sad-blue), var(--accent)); border-radius: 5px; writing-mode: bt-lr; appearance: slider-vertical; cursor: pointer; }
         .icon { font-size: 1.5rem; }
-
         .main-content { display: flex; flex-direction: column; gap: 20px; }
         
-        /* Progress Bar */
-        .progress-container { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; height: 10px; }
-        .step { background: #333; border-radius: 2px; transition: background 0.3s; }
-        .step.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        /* Progress Bar (3 steps) */
+        .progress-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; height: 12px; }
+        .step { background: #222; border-radius: 4px; border: 1px solid #333; transition: all 0.3s ease; }
+        .step.active { background: var(--accent); box-shadow: 0 0 15px var(--accent); border-color: white; }
 
-        .display-area { background: #181818; padding: 25px; border-radius: 15px; border: 1px solid #333; line-height: 1.7; min-height: 120px; font-size: 1.1rem; }
-        b { color: var(--accent); }
+        .display-area { background: #0a0a0a; padding: 30px; border-radius: 15px; border: 1px solid #333; line-height: 1.8; min-height: 100px; font-size: 1.2rem; position: relative; }
+        b { color: var(--accent); transition: all 0.5s; display: inline-block; min-width: 10px; }
         .loading-pulse { animation: pulse 1s infinite; }
         @keyframes pulse { 50% { opacity: 0.3; } }
 
-        button#trigger { align-self: flex-start; background: #333; color: var(--accent); border: 1px solid var(--accent); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button#trigger { align-self: flex-start; background: transparent; color: var(--accent); border: 2px solid var(--accent); padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
         button#trigger:hover { background: var(--accent); color: #000; }
 
-        /* Console styling */
-        .console-wrapper { margin-top: 20px; }
-        .console-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; font-size: 0.7rem; color: #666; }
-        .console { background: #000; color: #00ff00; font-family: 'Courier New', monospace; font-size: 0.8rem; padding: 15px; border-radius: 8px; height: 150px; overflow-y: auto; border: 1px solid #222; }
-        .log-entry { margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 4px; }
-        .timestamp { color: #888; margin-right: 10px; }
-        .clear-btn { background: none; border: 1px solid #444; color: #666; font-size: 0.6rem; cursor: pointer; padding: 2px 5px; border-radius: 3px; }
-
-        /* API Modal */
-        #apiModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--card); padding: 30px; border-radius: 15px; border: 1px solid var(--accent); width: 400px; text-align: center; }
-        .input-wrap { position: relative; margin: 20px 0; }
-        #apiKeyInput { width: 100%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 5px; box-sizing: border-box; padding-right: 40px; }
-        .eye-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; opacity: 0.6; }
+        .console { background: #000; color: #00ff00; font-family: 'Courier New', monospace; font-size: 0.8rem; padding: 15px; border-radius: 8px; height: 140px; overflow-y: auto; border: 1px solid #222; margin-top: 10px; border-left: 3px solid var(--accent); }
+        
+        /* Secure Modal */
+        #apiModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--card); padding: 40px; border-radius: 20px; border: 1px solid var(--accent); width: 380px; text-align: center; }
+        #apiKeyInput { width: 100%; padding: 12px; background: #000; color: white; border: 1px solid #444; margin: 20px 0; border-radius: 5px; }
     </style>
 </head>
 <body>
 
 <div id="apiModal">
     <div class="modal-content">
-        <h3>Enter Gemini API Key</h3>
-        <p style="font-size: 0.8rem; color: #888;">Key is stored for this session only.</p>
-        <div class="input-wrap">
-            <input type="password" id="apiKeyInput" placeholder="Paste Key Here...">
-            <span class="eye-icon" id="togglePass">👁️</span>
-        </div>
-        <button id="saveKey" style="background: var(--accent); color: black; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%;">Initialize Engine</button>
+        <h2 style="margin-top:0">Initialize Brain</h2>
+        <input type="password" id="apiKeyInput" placeholder="Paste Gemini Key...">
+        <button id="saveKey" style="width:100%; padding:12px; background: var(--accent); color:black; border:none; cursor:pointer; font-weight:bold; border-radius:5px;">ACTIVATE</button>
     </div>
 </div>
 
 <div class="dashboard">
     <div class="version-tag" id="dynamicVersion"></div>
-    
     <div class="slider-box">
         <span class="icon">😊</span>
-        <input type="range" id="moodSlider" class="vertical" min="0" max="100" value="50" step="1">
+        <input type="range" id="moodSlider" class="vertical" min="0" max="100" value="50">
         <span class="icon">😢</span>
-        <button id="trigger">Tell me about it</button>
+        <button id="trigger">Generate</button>
     </div>
 
     <div class="main-content">
-        <div class="progress-container" id="progressBar">
-            <div class="step"></div><div class="step"></div><div class="step"></div>
-            <div class="step"></div><div class="step"></div><div class="step"></div>
+        <div class="progress-container">
+            <div class="step" title="Segment 1: Backstory"></div>
+            <div class="step" title="Segment 2: Emotional State"></div>
+            <div class="step" title="Segment 3: Physical Reaction"></div>
         </div>
-
         <div class="display-area" id="output">
             Because <b id="story">...</b>, I am <b id="mood">...</b> and <b id="reaction">...</b>.
         </div>
-
-        <div class="console-wrapper">
-            <div class="console-header">
-                <span>SYSTEM LOG</span>
-                <button class="clear-btn" id="clearConsole">CLEAR</button>
-            </div>
-            <div class="console" id="consoleLog"></div>
-        </div>
+        <div class="console" id="consoleLog"></div>
     </div>
 </div>
 
@@ -95,7 +73,6 @@
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
     let genAI, model;
-
     const els = {
         story: document.getElementById('story'),
         mood: document.getElementById('mood'),
@@ -106,131 +83,90 @@
         steps: document.querySelectorAll('.step'),
         modal: document.getElementById('apiModal'),
         keyInput: document.getElementById('apiKeyInput'),
-        saveBtn: document.getElementById('saveKey'),
-        eye: document.getElementById('togglePass'),
         version: document.getElementById('dynamicVersion')
     };
 
-    // 1. Sync Version Tag with Page Title
     els.version.innerText = document.title;
 
-    // 2 & 4. Setup API function & Secure Modal logic
     function initAPI() {
-        const stored = sessionStorage.getItem('AI_DASH_KEY');
-        if (!stored) {
-            els.modal.style.display = 'flex';
-        } else {
-            setupModel(stored);
-        }
-    }
-
-    function setupModel(key) {
-        try {
+        const key = sessionStorage.getItem('AI_DASH_KEY');
+        if (!key) els.modal.style.display = 'flex';
+        else {
             genAI = new GoogleGenerativeAI(key);
-            model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-            log("SYS", "API Engine Initialized Successfully.");
-        } catch (e) {
-            log("ERROR", "Initialization failed. Resetting key.");
-            sessionStorage.removeItem('AI_DASH_KEY');
+            // Ensuring we use the working preview string from your successful test
+            model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-preview" });
+            log("BOOT", "Sequential Logic Core Online.");
         }
     }
 
-    els.saveBtn.onclick = () => {
-        const key = els.keyInput.value.trim();
-        if (key) {
-            sessionStorage.setItem('AI_DASH_KEY', key);
-            setupModel(key);
-            els.keyInput.value = ""; // Erase immediately
-            els.modal.style.display = 'none';
-        }
+    document.getElementById('saveKey').onclick = () => {
+        sessionStorage.setItem('AI_DASH_KEY', els.keyInput.value.trim());
+        els.modal.style.display = 'none';
+        initAPI();
     };
-
-    els.eye.onclick = () => {
-        els.keyInput.type = els.keyInput.type === 'password' ? 'text' : 'password';
-    };
-
-    // Console & Progress Utils
-    document.getElementById('clearConsole').onclick = () => els.console.innerHTML = '';
 
     function log(type, msg) {
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
         const time = new Date().toLocaleTimeString().split(' ')[0];
-        entry.innerHTML = `<span class="timestamp">[${time}]</span> <strong>${type}:</strong> ${msg}`;
-        els.console.prepend(entry);
+        const color = type === 'TX' ? '#00ff88' : '#888';
+        els.console.innerHTML = `<div style="color:${color}">[${time}] <b>${type}:</b> ${msg}</div>` + els.console.innerHTML;
     }
 
-    function setStep(index) {
-        els.steps.forEach((s, i) => s.classList.toggle('active', i === index));
+    function setStep(idx) {
+        els.steps.forEach((s, i) => s.classList.toggle('active', i === idx));
     }
 
-    // 3. Main Pipeline Call
-    els.btn.addEventListener('click', () => {
-        if (!sessionStorage.getItem('AI_DASH_KEY')) {
-            initAPI();
-        } else {
-            runPipeline();
-        }
-    });
-
-    async function runPipeline() {
-        if (!model) {
-            log("ERROR", "Model not ready. Re-initializing...");
-            initAPI();
-            return;
-        }
-
-        const val = els.slider.value;
-        const comp = Math.random() > 0.5 ? 'complex' : 'simple';
-        const len = ['sentence', 'paragraph', 'story'][Math.floor(Math.random() * 3)];
+    els.btn.onclick = async () => {
+        const score = els.slider.value;
+        const style = score > 50 ? 'poetic and expansive' : 'gritty and minimal';
         
-        Object.values(els).forEach(el => el.classList?.add('loading-pulse'));
-        
+        // Reset View
+        [els.story, els.mood, els.reaction].forEach(el => {
+            el.innerText = "...";
+            el.classList.add('loading-pulse');
+        });
+
         try {
-            setStep(0);
-            const p1 = `Mood score ${val}/100. One ${comp} adjective. No period.`;
-            log("TX_MOOD", p1);
+            // Setup API if never set
+            initAPI();
             
-            const r1 = await model.generateContent(p1);
-            setStep(1);
-            const moodText = r1.response.text().trim().toLowerCase();
-            log("RX_MOOD", moodText);
-            els.mood.innerText = moodText;
-
-            setStep(2);
-            const p2 = `Write a ${comp} ${len} backstory for mood: ${moodText}. No "Because".`;
-            log("TX_STORY", p2);
-
-            const r2 = await model.generateContent(p2);
-            setStep(3);
-            const storyText = r2.response.text().trim();
-            log("RX_STORY", storyText);
+            // STEP 1: The Backstory
+            setStep(0);
+            const prompt1 = `Part 1 of 3. Mood score is ${score}/100. Write a ${style} backstory fragment starting after the word "Because". NO capitalization, NO period. Example: "the rain finally stopped"`;
+            log("TX_1", "Requesting backstory...");
+            const res1 = await model.generateContent(prompt1);
+            const storyText = res1.response.text().trim().toLowerCase();
             els.story.innerText = storyText;
+            els.story.classList.remove('loading-pulse');
+            log("RX_1", storyText);
 
-            setStep(4);
-            const p3 = `Physical reaction for mood: ${moodText}. ${comp}. No period.`;
-            log("TX_REACT", p3);
+            // STEP 2: The Mood (Context-Aware)
+            setStep(1);
+            const prompt2 = `Part 2 of 3. Previous segment: "Because ${storyText}". Based on this, provide a matching adjective/state that follows "I am". NO capitalization, NO period.`;
+            log("TX_2", "Processing emotional state...");
+            const res2 = await model.generateContent(prompt2);
+            const moodText = res2.response.text().trim().toLowerCase();
+            els.mood.innerText = moodText;
+            els.mood.classList.remove('loading-pulse');
+            log("RX_2", moodText);
 
-            const r3 = await model.generateContent(p3);
-            setStep(5);
-            const reactText = r3.response.text().trim();
-            log("RX_REACT", reactText);
+            // STEP 3: The Reaction (Final Integration)
+            setStep(2);
+            const prompt3 = `Part 3 of 3. Full sentence so far: "Because ${storyText}, I am ${moodText} and...". Provide a physical reaction/action to finish the sentence. Must be grammatically seamless. NO capitalization, NO period.`;
+            log("TX_3", "Finalizing integration...");
+            const res3 = await model.generateContent(prompt3);
+            const reactText = res3.response.text().trim().toLowerCase();
             els.reaction.innerText = reactText;
+            els.reaction.classList.remove('loading-pulse');
+            log("RX_3", reactText);
 
         } catch (err) {
-            log("ERROR", err.message);
-            if(err.message.includes('403') || err.message.includes('API key')) {
-                sessionStorage.removeItem('AI_DASH_KEY');
-                initAPI();
-            }
+            log("ERR", err.message);
         } finally {
-            Object.values(els).forEach(el => el.classList?.remove('loading-pulse'));
-            setTimeout(() => setStep(-1), 1000);
+            setTimeout(() => setStep(-1), 1500);
         }
-    }
+    };
 
-    // Initial check on load
-    window.onload = initAPI;
+    // window.onload = initAPI;
 </script>
 </body>
 </html>
