@@ -43,7 +43,7 @@
 <body>
 
 <div class="dashboard">
-    <div class="version-tag">aiDash v1.2.5 <br />א'לזאס'עב'xפנפ'0'פת'1ינ'מס'-א'80ע2וּ'תא8רגר'נ'ד'י'ס'נל'8</div>
+    <div class="version-tag">aiDash v1.2.5</div>
     
     <div class="slider-box">
         <span class="icon">😊</span>
@@ -73,6 +73,14 @@
 </div>
 
 <script type="module">
+
+    // code plan. Erase this in next version. 
+    // todo: 1. Make version tag take string (with name and version) from title. 
+    // todo: 2. Make functrion to setup API (with API key).  Move all that code out of general into there. 
+    // todo: 3. Call functrion to setupAPI  at beginning of steps. 
+    // todo: 4. Fix the input to an html popup div with a password (and see password Eye icon). 
+    // User can paste into the API key text box. Once uised the api key value is erased from that textbox and cannot be seen. 
+    
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
     
     // --- SECURITY PROTOCOL v1.2.3 ---
@@ -83,7 +91,6 @@
         API_KEY = prompt("API Key leaked/missing. Please enter a fresh Gemini API Key:");
         if (API_KEY) sessionStorage.setItem('AI_DASH_KEY', API_KEY);
     }
-
     const genAI = new GoogleGenerativeAI(API_KEY);
     // Using the current 2026 standard model
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
@@ -126,6 +133,9 @@
         Object.values(els).forEach(el => el.classList?.add('loading-pulse'));
         
         try {
+            // Setup API key
+            
+            
             // STEP 1: Sending Mood Prompt
             setStep(0);
             const p1 = `Mood score ${val}/100. One ${comp} adjective.`;
