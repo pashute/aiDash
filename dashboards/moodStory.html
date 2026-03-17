@@ -1,172 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aiDash - moodStory v1.4.7 (testing initAPI in function)</title>
-    <style>
-        :root { --accent: #00ff88; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --sad-blue: #3498db; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .dashboard { background: var(--card); padding: 2rem; border-radius: 24px; width: 750px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #333; position: relative; display: grid; grid-template-columns: 80px 1fr; gap: 20px; }
-        .version-tag { position: absolute; top: 10px; right: 20px; font-size: 0.65rem; color: #f5f5f5; font-family: monospace; opacity: 0.7; }
-        
-        /* Slider & Layout */
-        .slider-box { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        input[type=range].vertical { appearance: none; width: 8px; height: 350px; background: linear-gradient(to top, var(--sad-blue), var(--accent)); border-radius: 5px; writing-mode: bt-lr; appearance: slider-vertical; cursor: pointer; }
-        .icon { font-size: 1.5rem; }
-        .main-content { display: flex; flex-direction: column; gap: 20px; }
-        
-        /* Progress Bar (3 steps) */
-        .progress-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; height: 12px; }
-        .step { background: #222; border-radius: 4px; border: 1px solid #333; transition: all 0.3s ease; }
-        .step.active { background: var(--accent); box-shadow: 0 0 15px var(--accent); border-color: white; }
+// --- NEW: Mood Memory Persistence ---
+let moodHistory = JSON.parse(localStorage.getItem('mood_history')) || [];
 
-        .display-area { background: #0a0a0a; padding: 30px; border-radius: 15px; border: 1px solid #333; line-height: 1.8; min-height: 100px; font-size: 1.2rem; position: relative; }
-        b { color: var(--accent); transition: all 0.5s; display: inline-block; min-width: 10px; }
-        .loading-pulse { animation: pulse 1s infinite; }
-        @keyframes pulse { 50% { opacity: 0.3; } }
+async function runPipeline() {
+    const score = els.slider.value;
+    const style = score > 50 ? 'poetic and expansive' : 'gritty and minimal';
+    
+    // Convert history to a string for the prompt
+    const avoidList = moodHistory.length > 0 ? `Avoid using these specific words: ${moodHistory.join(', ')}.` : "";
 
-        button#trigger { align-self: flex-start; background: transparent; color: var(--accent); border: 2px solid var(--accent); padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        button#trigger:hover { background: var(--accent); color: #000; }
+    try {
+        // STEP 1: Backstory
+        setStep(0); // TX Light
+        const prompt1 = `Part 1 of 3. Mood score: ${score}/100. Write a ${style} backstory fragment starting after "Because". NO caps, NO period.`;
+        const res1 = await model.generateContent(prompt1);
+        setStep(1); // RX Light
+        const storyText = res1.response.text().trim().toLowerCase();
+        els.story.innerText = storyText;
 
-        .console { background: #000; color: #00ff00; font-family: 'Courier New', monospace; font-size: 0.8rem; padding: 15px; border-radius: 8px; height: 140px; overflow-y: auto; border: 1px solid #222; margin-top: 10px; border-left: 3px solid var(--accent); }
-        
-        /* Secure Modal */
-        #apiModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--card); padding: 40px; border-radius: 20px; border: 1px solid var(--accent); width: 380px; text-align: center; }
-        #apiKeyInput { width: 100%; padding: 12px; background: #000; color: white; border: 1px solid #444; margin: 20px 0; border-radius: 5px; }
-    </style>
-</head>
-<body>
+        // STEP 2: The Mood (With Memory Avoidance)
+        setStep(2); // TX Light
+        const prompt2 = `Part 2 of 3. Context: "Because ${storyText}". Provide one adjective/state for "I am". ${avoidList} NO caps, NO period.`;
+        const res2 = await model.generateContent(prompt2);
+        setStep(3); // RX Light
+        const moodText = res2.response.text().trim().toLowerCase();
+        els.mood.innerText = moodText;
 
-<div id="apiModal">
-    <div class="modal-content">
-        <h2 style="margin-top:0">Initialize Brain</h2>
-        <input type="password" id="apiKeyInput" placeholder="Paste Gemini Key...">
-        <button id="saveKey" style="width:100%; padding:12px; background: var(--accent); color:black; border:none; cursor:pointer; font-weight:bold; border-radius:5px;">ACTIVATE</button>
-    </div>
-</div>
+        // Save to Memory
+        moodHistory.push(moodText);
+        if(moodHistory.length > 20) moodHistory.shift(); // Keep last 20
+        localStorage.setItem('mood_history', JSON.stringify(moodHistory));
 
-<div class="dashboard">
-    <div class="version-tag" id="dynamicVersion"></div>
-    <div class="slider-box">
-        <span class="icon">😊</span>
-        <input type="range" id="moodSlider" class="vertical" min="0" max="100" value="50">
-        <span class="icon">😢</span>
-        <button id="trigger">Generate</button>
-    </div>
+        // STEP 3: Reaction
+        setStep(4); // TX Light
+        const prompt3 = `Part 3 of 3. Context: "Because ${storyText}, I am ${moodText} and...". Provide a seamless physical reaction. NO caps, NO period.`;
+        const res3 = await model.generateContent(prompt3);
+        setStep(5); // RX Light
+        const reactText = res3.response.text().trim().toLowerCase();
+        els.reaction.innerText = reactText;
 
-    <div class="main-content">
-        <div class="progress-container">
-            <div class="step" title="Segment 1: Backstory"></div>
-            <div class="step" title="Segment 2: Emotional State"></div>
-            <div class="step" title="Segment 3: Physical Reaction"></div>
-        </div>
-        <div class="display-area" id="output">
-            Because <b id="story">...</b>, I am <b id="mood">...</b> and <b id="reaction">...</b>.
-        </div>
-        <div class="console" id="consoleLog"></div>
-    </div>
-</div>
-
-<script type="module">
-    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-
-    let genAI, model;
-    const els = {
-        story: document.getElementById('story'),
-        mood: document.getElementById('mood'),
-        reaction: document.getElementById('reaction'),
-        slider: document.getElementById('moodSlider'),
-        btn: document.getElementById('trigger'),
-        console: document.getElementById('consoleLog'),
-        steps: document.querySelectorAll('.step'),
-        modal: document.getElementById('apiModal'),
-        keyInput: document.getElementById('apiKeyInput'),
-        version: document.getElementById('dynamicVersion')
-    };
-
-    els.version.innerText = document.title;
-
-    function initAPI() {
-        const key = sessionStorage.getItem('AI_DASH_KEY');
-        if (!key) els.modal.style.display = 'flex';
-        else {
-            genAI = new GoogleGenerativeAI(key);
-            // Ensuring we use the working preview string from your successful test
-            model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-            log("BOOT", "Sequential Logic Core Online.");
-        }
+    } catch (err) {
+        log("ERR", err.message);
     }
-
-    document.getElementById('saveKey').onclick = () => {
-        sessionStorage.setItem('AI_DASH_KEY', els.keyInput.value.trim());
-        els.modal.style.display = 'none';
-        initAPI();
-    };
-
-    function log(type, msg) {
-        const time = new Date().toLocaleTimeString().split(' ')[0];
-        const color = type === 'TX' ? '#00ff88' : '#888';
-        els.console.innerHTML = `<div style="color:${color}">[${time}] <b>${type}:</b> ${msg}</div>` + els.console.innerHTML;
-    }
-
-    function setStep(idx) {
-        els.steps.forEach((s, i) => s.classList.toggle('active', i === idx));
-    }
-
-    els.btn.onclick = async () => {
-        const score = els.slider.value;
-        const style = score > 50 ? 'poetic and expansive' : 'gritty and minimal';
-        
-        // Reset View
-        [els.story, els.mood, els.reaction].forEach(el => {
-            el.innerText = "...";
-            el.classList.add('loading-pulse');
-        });
-
-        try {
-            // Setup API if never set
-            initAPI();
-            
-            // STEP 1: The Backstory
-            setStep(0);
-            const prompt1 = `Part 1 of 3. Mood score is ${score}/100. Write a ${style} backstory fragment starting after the word "Because". NO capitalization, NO period. Example: "the rain finally stopped"`;
-            log("TX_1", "Requesting backstory...");
-            const res1 = await model.generateContent(prompt1);
-            const storyText = res1.response.text().trim().toLowerCase();
-            els.story.innerText = storyText;
-            els.story.classList.remove('loading-pulse');
-            log("RX_1", storyText);
-
-            // STEP 2: The Mood (Context-Aware)
-            setStep(1);
-            const prompt2 = `Part 2 of 3. Previous segment: "Because ${storyText}". Based on this, provide a matching adjective/state that follows "I am". NO capitalization, NO period.`;
-            log("TX_2", "Processing emotional state...");
-            const res2 = await model.generateContent(prompt2);
-            const moodText = res2.response.text().trim().toLowerCase();
-            els.mood.innerText = moodText;
-            els.mood.classList.remove('loading-pulse');
-            log("RX_2", moodText);
-
-            // STEP 3: The Reaction (Final Integration)
-            setStep(2);
-            const prompt3 = `Part 3 of 3. Full sentence so far: "Because ${storyText}, I am ${moodText} and...". Provide a physical reaction/action to finish the sentence. Must be grammatically seamless. NO capitalization, NO period.`;
-            log("TX_3", "Finalizing integration...");
-            const res3 = await model.generateContent(prompt3);
-            const reactText = res3.response.text().trim().toLowerCase();
-            els.reaction.innerText = reactText;
-            els.reaction.classList.remove('loading-pulse');
-            log("RX_3", reactText);
-
-        } catch (err) {
-            log("ERR", err.message);
-        } finally {
-            setTimeout(() => setStep(-1), 1500);
-        }
-    };
-
-    // window.onload = initAPI;
-</script>
-</body>
-</html>
+}
