@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aiDash - moodStory v1.2.4</title>
+    <title>aiDash - moodStory v1.2.5</title>
     <style>
         :root { --accent: #00ff88; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --sad-blue: #3498db; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
@@ -43,7 +43,7 @@
 <body>
 
 <div class="dashboard">
-    <div class="version-tag">aiDash v1.2.4</div>
+    <div class="version-tag">aiDash v1.2.5 <br />א'לזאס'עב'xפנפ'0'פת'1ינ'מס'-א'80ע2וּ'תא8רגר'נ'ד'י'ס'נל'8</div>
     
     <div class="slider-box">
         <span class="icon">😊</span>
@@ -74,8 +74,21 @@
 
 <script type="module">
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+    
+    // --- SECURITY PROTOCOL v1.2.3 ---
+    // Do not hardcode the key. It will be stored in your browser session.
+    let API_KEY = sessionStorage.getItem('AI_DASH_KEY');
+    
+    if (!API_KEY) {
+        API_KEY = prompt("API Key leaked/missing. Please enter a fresh Gemini API Key:");
+        if (API_KEY) sessionStorage.setItem('AI_DASH_KEY', API_KEY);
+    }
 
-    const API_KEY = "AIzaSyBzNgz_Q_1NAkUgq7JDz-NuoQt3l9JT2cY"; 
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    // Using the current 2026 standard model
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
+
+    // ... (rest of the logging and element logic remains same)
     const genAI = new GoogleGenerativeAI(API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
