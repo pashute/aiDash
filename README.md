@@ -6,15 +6,17 @@ limited to sections of the view.
 ## Examples:
 
 ### Moody dashboard
-- [ ] Single slider: From sad to happy.  (with sad icon on left, happy icon on right)
-- [ ] Random: Response type: simple / complex 
-- [ ] Random: Response length: sentence / paragraph / short story.
+- [ ] Single slider: From sad to happy.  (with blue sad icon on left, happy bright green icon on right)
+  - [ ] Random: Response type: simple / complex 
+  - [ ] Random: Response length: sentence / paragraph / short story.
 - [ ] Structured text: Because {story}, I am {mood} and {reaction}. 
+
+#### How it works: 
 - [ ] Stage 1:  Get AI elaborate mood phrase - according to mood, type and length. 
 - [ ] Stage 2:  Get AI created story - that caused mood. keep to type and length. 
 - [ ] Stage 3:  Get AI created reaction. Keep to type and length. 
 
-Added in retrospect:
+### Added in retrospect:
 - [ ] Notches on slider.  Large in mid, regular on quarters and ends.
 - [ ] Examples in prompts.  Given according to complexity and length.
 
