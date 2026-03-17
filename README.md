@@ -39,3 +39,8 @@ Slide show like:  Presents
 - Stage 1: mouth only
 - Phonetic text
 
+### Chord analyzer and viewer
+
+- Analyzes chord played in audio file
+- Breaks music into  4 or 6 beat phrases. 
+- Synchronizes presenting chord in phrase while playing. 
