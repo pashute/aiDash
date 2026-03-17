@@ -127,7 +127,7 @@
     function setupModel(key) {
         try {
             genAI = new GoogleGenerativeAI(key);
-            model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
+            model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
             log("SYS", "API Engine Initialized Successfully.");
         } catch (e) {
             log("ERROR", "Initialization failed. Resetting key.");
