@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aiDash - moodStory v1.2.5</title>
+    <title>aiDash - moodStory v1.3.0</title>
     <style>
         :root { --accent: #00ff88; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --sad-blue: #3498db; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
         
         .dashboard { background: var(--card); padding: 2rem; border-radius: 24px; width: 700px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #333; position: relative; display: grid; grid-template-columns: 80px 1fr; gap: 20px; }
-        .version-tag { position: absolute; top: 10px; right: 20px; font-size: 0.65rem; color: #f5f5f5; font-family: monospace; }
+        .version-tag { position: absolute; top: 10px; right: 20px; font-size: 0.65rem; color: #f5f5f5; font-family: monospace; opacity: 0.7; }
         
         /* Vertical Slider Styling */
         .slider-box { display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; }
-        input[type=range].vertical { appearance: none; width: 8px; height: 300px; background: linear-gradient(to top, var(--sad-blue), var(--accent)); border-radius: 5px; writing-mode: bt-lr; /* Webkit */ appearance: slider-vertical; }
+        input[type=range].vertical { appearance: none; width: 8px; height: 300px; background: linear-gradient(to top, var(--sad-blue), var(--accent)); border-radius: 5px; writing-mode: bt-lr; appearance: slider-vertical; }
         .icon { font-size: 1.5rem; }
 
         .main-content { display: flex; flex-direction: column; gap: 20px; }
@@ -38,12 +38,31 @@
         .log-entry { margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 4px; }
         .timestamp { color: #888; margin-right: 10px; }
         .clear-btn { background: none; border: 1px solid #444; color: #666; font-size: 0.6rem; cursor: pointer; padding: 2px 5px; border-radius: 3px; }
+
+        /* API Modal */
+        #apiModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--card); padding: 30px; border-radius: 15px; border: 1px solid var(--accent); width: 400px; text-align: center; }
+        .input-wrap { position: relative; margin: 20px 0; }
+        #apiKeyInput { width: 100%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 5px; box-sizing: border-box; padding-right: 40px; }
+        .eye-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; opacity: 0.6; }
     </style>
 </head>
 <body>
 
+<div id="apiModal">
+    <div class="modal-content">
+        <h3>Enter Gemini API Key</h3>
+        <p style="font-size: 0.8rem; color: #888;">Key is stored for this session only.</p>
+        <div class="input-wrap">
+            <input type="password" id="apiKeyInput" placeholder="Paste Key Here...">
+            <span class="eye-icon" id="togglePass">👁️</span>
+        </div>
+        <button id="saveKey" style="background: var(--accent); color: black; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%;">Initialize Engine</button>
+    </div>
+</div>
+
 <div class="dashboard">
-    <div class="version-tag">aiDash v1.2.5</div>
+    <div class="version-tag" id="dynamicVersion"></div>
     
     <div class="slider-box">
         <span class="icon">😊</span>
@@ -73,31 +92,9 @@
 </div>
 
 <script type="module">
-
-    // code plan. Erase this in next version. 
-    // todo: 1. Make version tag take string (with name and version) from title. 
-    // todo: 2. Make functrion to setup API (with API key).  Move all that code out of general into there. 
-    // todo: 3. Call functrion to setupAPI  at beginning of steps. 
-    // todo: 4. Fix the input to an html popup div with a password (and see password Eye icon). 
-    // User can paste into the API key text box. Once uised the api key value is erased from that textbox and cannot be seen. 
-    
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-    
-    // --- SECURITY PROTOCOL v1.2.3 ---
-    // Do not hardcode the key. It will be stored in your browser session.
-    let API_KEY = sessionStorage.getItem('AI_DASH_KEY');
-    
-    if (!API_KEY) {
-        API_KEY = prompt("API Key leaked/missing. Please enter a fresh Gemini API Key:");
-        if (API_KEY) sessionStorage.setItem('AI_DASH_KEY', API_KEY);
-    }
-    const genAI = new GoogleGenerativeAI(API_KEY);
-    // Using the current 2026 standard model
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
 
-    // ... (rest of the logging and element logic remains same)
-    const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    let genAI, model;
 
     const els = {
         story: document.getElementById('story'),
@@ -106,9 +103,53 @@
         slider: document.getElementById('moodSlider'),
         btn: document.getElementById('trigger'),
         console: document.getElementById('consoleLog'),
-        steps: document.querySelectorAll('.step')
+        steps: document.querySelectorAll('.step'),
+        modal: document.getElementById('apiModal'),
+        keyInput: document.getElementById('apiKeyInput'),
+        saveBtn: document.getElementById('saveKey'),
+        eye: document.getElementById('togglePass'),
+        version: document.getElementById('dynamicVersion')
     };
 
+    // 1. Sync Version Tag with Page Title
+    els.version.innerText = document.title;
+
+    // 2 & 4. Setup API function & Secure Modal logic
+    function initAPI() {
+        const stored = sessionStorage.getItem('AI_DASH_KEY');
+        if (!stored) {
+            els.modal.style.display = 'flex';
+        } else {
+            setupModel(stored);
+        }
+    }
+
+    function setupModel(key) {
+        try {
+            genAI = new GoogleGenerativeAI(key);
+            model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
+            log("SYS", "API Engine Initialized Successfully.");
+        } catch (e) {
+            log("ERROR", "Initialization failed. Resetting key.");
+            sessionStorage.removeItem('AI_DASH_KEY');
+        }
+    }
+
+    els.saveBtn.onclick = () => {
+        const key = els.keyInput.value.trim();
+        if (key) {
+            sessionStorage.setItem('AI_DASH_KEY', key);
+            setupModel(key);
+            els.keyInput.value = ""; // Erase immediately
+            els.modal.style.display = 'none';
+        }
+    };
+
+    els.eye.onclick = () => {
+        els.keyInput.type = els.keyInput.type === 'password' ? 'text' : 'password';
+    };
+
+    // Console & Progress Utils
     document.getElementById('clearConsole').onclick = () => els.console.innerHTML = '';
 
     function log(type, msg) {
@@ -123,9 +164,22 @@
         els.steps.forEach((s, i) => s.classList.toggle('active', i === index));
     }
 
-    els.btn.addEventListener('click', runPipeline);
+    // 3. Main Pipeline Call
+    els.btn.addEventListener('click', () => {
+        if (!sessionStorage.getItem('AI_DASH_KEY')) {
+            initAPI();
+        } else {
+            runPipeline();
+        }
+    });
 
     async function runPipeline() {
+        if (!model) {
+            log("ERROR", "Model not ready. Re-initializing...");
+            initAPI();
+            return;
+        }
+
         const val = els.slider.value;
         const comp = Math.random() > 0.5 ? 'complex' : 'simple';
         const len = ['sentence', 'paragraph', 'story'][Math.floor(Math.random() * 3)];
@@ -133,39 +187,30 @@
         Object.values(els).forEach(el => el.classList?.add('loading-pulse'));
         
         try {
-            // Setup API key
-            
-            
-            // STEP 1: Sending Mood Prompt
             setStep(0);
-            const p1 = `Mood score ${val}/100. One ${comp} adjective.`;
+            const p1 = `Mood score ${val}/100. One ${comp} adjective. No period.`;
             log("TX_MOOD", p1);
             
-            // STEP 2: Receiving Mood
             const r1 = await model.generateContent(p1);
             setStep(1);
             const moodText = r1.response.text().trim().toLowerCase();
             log("RX_MOOD", moodText);
             els.mood.innerText = moodText;
 
-            // STEP 3: Sending Story Prompt
             setStep(2);
             const p2 = `Write a ${comp} ${len} backstory for mood: ${moodText}. No "Because".`;
             log("TX_STORY", p2);
 
-            // STEP 4: Receiving Story
             const r2 = await model.generateContent(p2);
             setStep(3);
             const storyText = r2.response.text().trim();
             log("RX_STORY", storyText);
             els.story.innerText = storyText;
 
-            // STEP 5: Sending Reaction Prompt
             setStep(4);
-            const p3 = `Physical reaction for mood: ${moodText}. ${comp}.`;
+            const p3 = `Physical reaction for mood: ${moodText}. ${comp}. No period.`;
             log("TX_REACT", p3);
 
-            // STEP 6: Receiving Reaction
             const r3 = await model.generateContent(p3);
             setStep(5);
             const reactText = r3.response.text().trim();
@@ -174,12 +219,18 @@
 
         } catch (err) {
             log("ERROR", err.message);
+            if(err.message.includes('403') || err.message.includes('API key')) {
+                sessionStorage.removeItem('AI_DASH_KEY');
+                initAPI();
+            }
         } finally {
             Object.values(els).forEach(el => el.classList?.remove('loading-pulse'));
             setTimeout(() => setStep(-1), 1000);
         }
     }
-</script>
 
+    // Initial check on load
+    window.onload = initAPI;
+</script>
 </body>
 </html>
