@@ -3,57 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aiDash - moodStory v1.1.0</title>
+    <title>aiDash - moodStory v1.2.0</title>
     <style>
-        :root { --accent: #00ff88; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 40px; margin: 0; }
-        .dashboard { background: var(--card); padding: 2.5rem; border-radius: 24px; width: 550px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #333; position: relative; }
-        .version-tag { position: absolute; top: 15px; right: 20px; font-size: 0.65rem; color: #555; font-family: monospace; }
-        h2 { margin-top: 0; font-weight: 300; text-align: center; color: white; }
+        :root { --accent: #00ff88; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --sad-blue: #3498db; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
         
-        .slider-container { margin: 40px 0; }
-        .slider-wrapper { display: flex; align-items: center; gap: 15px; }
-        .icon { font-size: 1.8rem; }
+        .dashboard { background: var(--card); padding: 2rem; border-radius: 24px; width: 700px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #333; position: relative; display: grid; grid-template-columns: 80px 1fr; gap: 20px; }
+        .version-tag { position: absolute; top: 10px; right: 20px; font-size: 0.65rem; color: #555; font-family: monospace; }
         
-        input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; }
-        
-        datalist { display: flex; justify-content: space-between; margin-top: 10px; padding: 0 45px; color: #555; font-size: 0.7rem; }
-        .large-notch { font-weight: bold; color: var(--accent); }
+        /* Vertical Slider Styling */
+        .slider-box { display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; }
+        input[type=range].vertical { appearance: none; width: 8px; height: 300px; background: linear-gradient(to top, var(--sad-blue), var(--accent)); border-radius: 5px; writing-mode: bt-lr; /* Webkit */ appearance: slider-vertical; }
+        .icon { font-size: 1.5rem; }
 
-        .display-area { background: #181818; padding: 25px; border-radius: 15px; border-top: 1px solid #333; line-height: 1.7; min-height: 160px; font-size: 1.1rem; }
-        b { color: var(--accent); font-weight: 500; transition: opacity 0.3s; }
+        .main-content { display: flex; flex-direction: column; gap: 20px; }
         
-        .loading-pulse { opacity: 0.3; animation: pulse 1s infinite; }
-        @keyframes pulse { 50% { opacity: 1; } }
+        /* Progress Bar */
+        .progress-container { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; height: 10px; }
+        .step { background: #333; border-radius: 2px; transition: background 0.3s; }
+        .step.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 
-        .meta-info { margin-top: 15px; font-size: 0.75rem; color: #555; text-transform: uppercase; text-align: right; font-weight: bold; }
+        .display-area { background: #181818; padding: 25px; border-radius: 15px; border: 1px solid #333; line-height: 1.7; min-height: 120px; font-size: 1.1rem; }
+        b { color: var(--accent); }
+        .loading-pulse { animation: pulse 1s infinite; }
+        @keyframes pulse { 50% { opacity: 0.3; } }
+
+        button#trigger { align-self: flex-start; background: #333; color: var(--accent); border: 1px solid var(--accent); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button#trigger:hover { background: var(--accent); color: #000; }
+
+        /* Console styling */
+        .console-wrapper { margin-top: 20px; }
+        .console-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; font-size: 0.7rem; color: #666; }
+        .console { background: #000; color: #00ff00; font-family: 'Courier New', monospace; font-size: 0.8rem; padding: 15px; border-radius: 8px; height: 150px; overflow-y: auto; border: 1px solid #222; }
+        .log-entry { margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 4px; }
+        .timestamp { color: #888; margin-right: 10px; }
+        .clear-btn { background: none; border: 1px solid #444; color: #666; font-size: 0.6rem; cursor: pointer; padding: 2px 5px; border-radius: 3px; }
     </style>
 </head>
 <body>
 
 <div class="dashboard">
-    <div class="version-tag">aiDash Engine v1.1.0</div>
-    <h2>🎭 moodStory</h2>
+    <div class="version-tag">aiDash v1.2.0</div>
     
-    <div class="slider-container">
-        <div class="slider-wrapper">
-            <span class="icon">😢</span>
-            <input type="range" id="moodSlider" min="0" max="100" value="50" list="markers">
-            <span class="icon">😊</span>
-        </div>
-        <datalist id="markers">
-            <option value="0" label="|"></option>
-            <option value="25" label="|"></option>
-            <option value="50" label="|" class="large-notch"></option>
-            <option value="75" label="|"></option>
-            <option value="100" label="|"></option>
-        </datalist>
+    <div class="slider-box">
+        <span class="icon">😊</span>
+        <input type="range" id="moodSlider" class="vertical" min="0" max="100" value="50" step="1">
+        <span class="icon">😢</span>
+        <button id="trigger">Tell me about it</button>
     </div>
 
-    <div class="display-area" id="output">
-        Because <b id="story">...</b>, I am <b id="mood">...</b> and <b id="reaction">...</b>.
+    <div class="main-content">
+        <div class="progress-container" id="progressBar">
+            <div class="step"></div><div class="step"></div><div class="step"></div>
+            <div class="step"></div><div class="step"></div><div class="step"></div>
+        </div>
+
+        <div class="display-area" id="output">
+            Because <b id="story">...</b>, I am <b id="mood">...</b> and <b id="reaction">...</b>.
+        </div>
+
+        <div class="console-wrapper">
+            <div class="console-header">
+                <span>SYSTEM LOG</span>
+                <button class="clear-btn" id="clearConsole">CLEAR</button>
+            </div>
+            <div class="console" id="consoleLog"></div>
+        </div>
     </div>
-    <div id="meta" class="meta-info">System Ready</div>
 </div>
 
 <script type="module">
@@ -63,66 +79,82 @@
     const genAI = new GoogleGenerativeAI(API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // --- ENHANCED EXAMPLE LIBRARY ---
-    const examples = {
-        simple: {
-            sentence: { story: "I found a forgotten $20 bill in my winter coat", mood: "genuinely cheerful", reaction: "whistling a tune" },
-            paragraph: { story: "The sun came out right as I stepped outside. The birds started singing and the air smelled like fresh rain on the pavement.", mood: "lighthearted", reaction: "walking with a little extra spring in my step" },
-            story: { story: "I woke up early and realized I had nothing on my schedule. I made a perfect cup of coffee, sat on the porch, and just watched the neighborhood wake up slowly.", mood: "calm and content", reaction: "taking a slow, deep breath of fresh air" }
-        },
-        complex: {
-            sentence: { story: "A single letter arrived, bearing the wax seal of a forgotten era", mood: "steeped in nostalgic curiosity", reaction: "tracing the indentation with a trembling finger" },
-            paragraph: { story: "The morning mist finally surrendered to a golden, uncompromising sun, revealing the garden in a sudden, vivid burst of dew-covered emeralds and blooming jasmine.", mood: "profoundly harmonious with the universe", reaction: "allowing my spirit to expand into the quiet warmth" },
-            story: { story: "After three years of silent corridors and dusty manuscripts, the letter arrived with the official seal I had dreamt of. It wasn't just a job offer; it was a homecoming to the ivory towers, a validation of every midnight candle burned.", mood: "electrified by hard-won triumph", reaction: "watching the city lights flicker to life like a celebration" }
-        }
+    const els = {
+        story: document.getElementById('story'),
+        mood: document.getElementById('mood'),
+        reaction: document.getElementById('reaction'),
+        slider: document.getElementById('moodSlider'),
+        btn: document.getElementById('trigger'),
+        console: document.getElementById('consoleLog'),
+        steps: document.querySelectorAll('.step')
     };
 
-    const slider = document.getElementById('moodSlider');
-    const meta = document.getElementById('meta');
-    const els = { story: document.getElementById('story'), mood: document.getElementById('mood'), reaction: document.getElementById('reaction') };
+    document.getElementById('clearConsole').onclick = () => els.console.innerHTML = '';
 
-    let debounceTimer;
-
-    slider.addEventListener('input', () => {
-        Object.values(els).forEach(el => el.classList.add('loading-pulse'));
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(runPipeline, 700);
-    });
-
-    async function runPipeline() {
-        const val = slider.value;
-        const comp = Math.random() > 0.5 ? 'complex' : 'simple';
-        const lens = ['sentence', 'paragraph', 'story'];
-        const len = lens[Math.floor(Math.random() * lens.length)];
-        
-        meta.innerText = `Mode: ${comp} ${len}`;
-
-        const ex = examples[comp][len];
-
-        try {
-            // Stage 1: Mood
-            const moodRes = await model.generateContent(`Score: ${val}/100. Give one ${comp} adjective/state. No period. Ex: ${ex.mood}`);
-            const moodText = moodRes.response.text().trim().toLowerCase();
-            updateSection('mood', moodText);
-
-            // Stage 2: Story
-            const storyRes = await model.generateContent(`Mood: ${moodText}. Write a ${comp} ${len} backstory. 
-            Format: Only the story. No "Because". Example: "${ex.story}"`);
-            updateSection('story', storyRes.response.text().trim());
-
-            // Stage 3: Reaction
-            const reactRes = await model.generateContent(`Mood: ${moodText}. Give a ${comp} reaction. No period. 
-            Example: "${ex.reaction}"`);
-            updateSection('reaction', reactRes.response.text().trim());
-
-        } catch (err) {
-            meta.innerText = "API Error";
-        }
+    function log(type, msg) {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        const time = new Date().toLocaleTimeString().split(' ')[0];
+        entry.innerHTML = `<span class="timestamp">[${time}]</span> <strong>${type}:</strong> ${msg}`;
+        els.console.prepend(entry);
     }
 
-    function updateSection(id, text) {
-        els[id].innerText = text;
-        els[id].classList.remove('loading-pulse');
+    function setStep(index) {
+        els.steps.forEach((s, i) => s.classList.toggle('active', i === index));
+    }
+
+    els.btn.addEventListener('click', runPipeline);
+
+    async function runPipeline() {
+        const val = els.slider.value;
+        const comp = Math.random() > 0.5 ? 'complex' : 'simple';
+        const len = ['sentence', 'paragraph', 'story'][Math.floor(Math.random() * 3)];
+        
+        Object.values(els).forEach(el => el.classList?.add('loading-pulse'));
+        
+        try {
+            // STEP 1: Sending Mood Prompt
+            setStep(0);
+            const p1 = `Mood score ${val}/100. One ${comp} adjective.`;
+            log("TX_MOOD", p1);
+            
+            // STEP 2: Receiving Mood
+            const r1 = await model.generateContent(p1);
+            setStep(1);
+            const moodText = r1.response.text().trim().toLowerCase();
+            log("RX_MOOD", moodText);
+            els.mood.innerText = moodText;
+
+            // STEP 3: Sending Story Prompt
+            setStep(2);
+            const p2 = `Write a ${comp} ${len} backstory for mood: ${moodText}. No "Because".`;
+            log("TX_STORY", p2);
+
+            // STEP 4: Receiving Story
+            const r2 = await model.generateContent(p2);
+            setStep(3);
+            const storyText = r2.response.text().trim();
+            log("RX_STORY", storyText);
+            els.story.innerText = storyText;
+
+            // STEP 5: Sending Reaction Prompt
+            setStep(4);
+            const p3 = `Physical reaction for mood: ${moodText}. ${comp}.`;
+            log("TX_REACT", p3);
+
+            // STEP 6: Receiving Reaction
+            const r3 = await model.generateContent(p3);
+            setStep(5);
+            const reactText = r3.response.text().trim();
+            log("RX_REACT", reactText);
+            els.reaction.innerText = reactText;
+
+        } catch (err) {
+            log("ERROR", err.message);
+        } finally {
+            Object.values(els).forEach(el => el.classList?.remove('loading-pulse'));
+            setTimeout(() => setStep(-1), 1000);
+        }
     }
 </script>
 
