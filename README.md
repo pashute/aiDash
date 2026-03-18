@@ -1,6 +1,6 @@
 # aiDash - Dashboards for AI integration
 
-Version 1.3
+Version 1.4
 
 aiDash serves as an "AJAX" for AI to update parts without updating the whole data,
 and as a UI for the AI and user to interact with each other visually. 
@@ -40,39 +40,74 @@ limited to sections of the view.
 
 Fixing only infected sections of code without affecting other parts. 
 
-A specialized editing interface for precise, non-destructive text modification by the AI while chatting with the user, without the need for rewriting the whold document again and again. 
+A specialized editing interface for precise, non-destructive text modification by the AI while chatting with the user, without the need for rewriting the whole document again and again. 
 
-#### Interface Elements (`codeFixer.html`)
+CodeFixer allows the AI to "repair" specific segments of a document according to the user's requests, through a structured dialogue, eliminating the need to re-transmit or rewrite the entire file.
+
+#### Branding & Header
 * **Title:** aiDash CodeFixer v{N.nn}
-* **Header row:**
-    * aiDashname: "**CodeFixer** - AI surgically modifiying text segments"
-    * aiDash version: take from title. (Use a large clear font for someone with eye problems) 
+* **Header Row:**
+    * **App Name:** "CodeFixer - AI surgically modifying text segments"
+    * **App Version:** Derived from the document title. Displayed in a large, high-contrast font for accessibility.
 
+#### Interface Elements
 * **Toolbar:**
-    * `[+]` **New code:** Clears editor and resets version to 1 (requires confirmation).
+    * `[+]` **New Code:** Resets editor and sets **Code Version** to 1.0 (requires confirmation).
+    * `[!]` **Check-in:** Manually increments the current **Code Version**.
     * `[^]` **Upload** | `[V]` **Download** | `[D]` **Save to Drive** (Gemini integration).
     * `[<.][.>]` **Undo/Redo.**
-    * **Language:** Dropdown selector (`js`, `md`, `html`, `json`, `yaml`).
-    * **Code Version:** Dynamic auto-incrementing label `{N.n}`.
-* **Editor:** Central text area for code input and modification.
-* **Refinement:** `[Paintbrush]` Colorize | `[Mascara]` Beautify.
+    * **Language:** Dropdown selector (`js`, `md`, `html`, `json`, `yaml`, `txt`).
+    * **Code Version:** Dynamic label `{N.n}` representing the current data state.
+* **Editor:** Central surgical area for text input and AI-driven modification.
+* **Refinement:** `[Paintbrush]` Colorize | `[Mascara]` Beautify (Targeted block formatting).
 * **Interaction:** Instruction prompt input field + `[>]` Send button.
-* **Reporting:** `[Printer]` (Grayed/Active) Displays JSON correction report as a table.
+* **Reporting:** `[Report]` button
+    * **Visual Indicator:** Lights up **Green** on sync/success or **Red** on version/boundary breach.
+    * **Function:** Opens the JSON correction report as an interactive table.
 
 #### Operational Logic
-1.  **Version Control:** Starts at v1.0; auto-increments with every AI response.
-2.  **State Lock:** Editor is locked to read-only from the moment **Send** is pressed until the update is complete.
-3.  **Validation:** AI performs fixes via regex find/replace, line-char insertion, or string substitution.
-4.  **Boundary Guard:** All changes are verified against section boundaries. Operations outside these bounds are rejected and reported.
+1.  **Version Control:** Code Version starts at 1.0; auto-increments by 0.1 with every successful AI response.
+2.  **State Lock:** The editor is locked to read-only from the moment **Send** is pressed until the UI confirms the update is complete.
+3.  **Sync-Check:** The outgoing prompt includes the current **Code Version**. The AI must include this version in its JSON header to prove it is referencing the correct state.
+4.  **Boundary Guard:** The UI validates all AI-requested changes (Regex find/replace, line:char insertion) against:
+    * **Coordinates:** Strict line/character matching.
+    * **Prefix/Suffix Check:** Verification of the surrounding text "neighborhood" to prevent off-target edits.
+5.  **Rejection:** If a version mismatch or boundary breach occurs, the UI rejects the change, logs the error in the Report, and sets the indicator to Red. 
 
 #### The AI Handshake (JSON)
-The AI returns a structured correction object containing:
-1.  **Headline:** Brief description of the fix.
-2.  **Instructions:** Specific implementation steps and remarks.
-3.  **Status:** `Done` or `Problem` (including detailed error descriptions).
-4.  **Audit:** A side-by-side JSON report comparing old and new text with line numbers.
+The AI returns a surgical correction object containing:
+1.  **Headline:** A brief, human-readable description of the fix.
+2.  **Instructions:** Step-by-step implementation details and technical remarks.
+3.  **Status:** `Done` or `Problem` (with specific details on failed boundary matches).
+4.  **Audit:** A side-by-side JSON report highlighting the old text vs. new text and the affected line numbers.
+
 
 ## Complex dashboards
+
+### Text-change mapper
+
+Lowers traffic sending a map back and forth, instead of resending the whole file, and sending ror accessing section patches when needed. 
+
+The user shouldn't need to click on anything. Just write the code and "save changes" 
+A document map is created by the AI in the initial request. 
+
+Form then on, every AI caused change would mark the affected section dirty, and remap that sections boundaries according to added and removed codelines.  Verified by opening and closing words. 
+
+In user modified sections - we do a "stupid" mapping. We don't anlayze anything, only hope to find remaining sections. Starting from the top of the file For each section, We search for the section before espeically its ending, and for the section after especially it's opening phrase, and recursively update the boundaries of found sections, and of new unkonwn "section spans" after a known sectikon ending and before a next known section beginning.   
+
+Even if the known section is found later, but moved beyond its original location, we are stupid and don't care. All we know is that that section went missing, and that there's a new span of sections later. 
+
+We know she erased 3 lines and added 2 lines on line 23.  
+We should first look at the section before this section and check if we have its beginning and end, emphasis on end. 
+Then we go to the next section which should start 1 line before its designated start in the old map.  if that isn't found, we look for the next section till we find it.  In most cases it will significantly lower the amount of text sent. 
+
+We don't actually send these changes, just report them to the ai.  Then the ai knows where suspected changes are, and, if it needs to look at any missing code sections, it can ask for it. We give it along with the map. 
+
+When the AI responds with explanations or suggested modifications it appends a new mapping of the (no more) missing sections, that were given in the patches. 
+
+Upon user request by pressing a button (attach all changes), or by using a reserved word in the chat (update all), all the patches are sent. The AIs response includes an updated map. 
+
+In the proposed aiDash patent, the AI can open a channel with the 
 
 ### JSON to Markdown viewer and WYSYWIG editor
 
