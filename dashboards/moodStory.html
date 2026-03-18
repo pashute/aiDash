@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aiDash - moodStory v2.0</title>
+    <title>aiDash - moodStory v2.1</title>
     <style>
         :root { --accent: #00ff88; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --sad-blue: #3498db; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
@@ -45,20 +45,26 @@
     <button onclick="location.href='../index.html'" style="margin-top:20px; background:#222; color:#00ff88; border:1px solid #00ff88; padding:10px 20px; cursor:pointer;">Return to Main Menu</button>
 </div>
 <script>
-    (function() {
-        const key = sessionStorage.getItem('GEMINI_KEY');
-        const authWall = document.getElementById('auth-wall');
-        
-        if (!key) {
-            // Show the wall and stop any further scripts from running
-            authWall.style.display = 'flex';
-            window.stop(); 
-        } else {
-            // Remove the wall element so it doesn't interfere with the UI
-            authWall.remove();
-        }
-    })();
+   const authWall = document.getElementById('auth-wall');
+
+    // 1. Get the URL of the page the user came from
+    const referrer = document.referrer;
+    
+    // 2. Define your valid entry point (The Hub)
+    // This checks if the referrer string contains your domain's index
+    const isFromHub = referrer.includes('aidashboards.vercel.app') && 
+                     (referrer.endsWith('/') || referrer.includes('index.html'));
+
+    if (!isFromHub) {
+        // Show the wall and stop any further scripts from running
+        authWall.style.display = 'flex';
+        window.stop(); 
+    } else {  // everything's ok
+       // Remove the wall element so it doesn't interfere with the UI
+       authWall.remove();
+    }
 </script>
+
 
 <div class="dashboard">
     <div class="version-tag" id="dynamicVersion"></div>
