@@ -41,6 +41,8 @@
     <button onclick="location.href='../index.html'" style="margin-top:20px; background:#222; color:#00ff88; border:1px solid #00ff88; padding:10px 20px; cursor:pointer;">Return to Main Menu</button>
 </div>
 <script>
+    const authWall = document.getElementById('auth-wall');
+    
     // 1. Get the URL of the page the user came from
     const referrer = document.referrer;
     
@@ -51,7 +53,6 @@
 
     if (!isFromHub) {
         // Show the wall and stop any further scripts from running
-        const authWall = document.getElementById('auth-wall');
         authWall.style.display = 'flex';
         window.stop(); 
     } else {  // everything's ok
