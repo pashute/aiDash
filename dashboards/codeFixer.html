@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>aiDash CodeFixer v1.5.1</title>
+    <title>aiDash CodeFixer v2.1</title>
     <style>
         :root { --accent: #00ff88; --bg: #0a0a0a; --panel: #161616; --error: #ff4444; --console: #1a1a1a; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: #e0e0e0; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
@@ -41,19 +41,23 @@
     <button onclick="location.href='../index.html'" style="margin-top:20px; background:#222; color:#00ff88; border:1px solid #00ff88; padding:10px 20px; cursor:pointer;">Return to Main Menu</button>
 </div>
 <script>
-    (function() {
-        const key = sessionStorage.getItem('GEMINI_KEY');
+    // 1. Get the URL of the page the user came from
+    const referrer = document.referrer;
+    
+    // 2. Define your valid entry point (The Hub)
+    // This checks if the referrer string contains your domain's index
+    const isFromHub = referrer.includes('aidashboards.vercel.app') && 
+                     (referrer.endsWith('/') || referrer.includes('index.html'));
+
+    if (!isFromHub) {
+        // Show the wall and stop any further scripts from running
         const authWall = document.getElementById('auth-wall');
-        
-        if (!key) {
-            // Show the wall and stop any further scripts from running
-            authWall.style.display = 'flex';
-            window.stop(); 
-        } else {
-            // Remove the wall element so it doesn't interfere with the UI
-            authWall.remove();
-        }
-    })();
+        authWall.style.display = 'flex';
+        window.stop(); 
+    } else {  // everything's ok
+       // Remove the wall element so it doesn't interfere with the UI
+       authWall.remove();
+    }
 </script>
 <header>
     <div class="brand"><h1>CodeFixer</h1></div>
