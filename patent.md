@@ -1,95 +1,88 @@
 ### Patent Specification: Modular AI Assembly Framework with Natural Language Interoperability
 
-aiDash  - Dashboards by AI for Interacting with AI 
-
-Version 0.01
+**Project:** aiDash — Dashboards by AI for Interacting with AI  
+**Version:** 0.01
 
 #### 1. Field of the Invention
 The present invention relates to the field of Human-Computer Interaction (HCI) and Artificial Intelligence. Specifically, it relates to a system for assembling simple or complex AI-driven dashboards using modular components that communicate via Natural Language (NL) or structured data (JSON) through standardized semantic interfaces.
 
 #### 2. Background of the Invention
-Existing AI development requires significant manual programming to connect user interfaces to Large Language Model (LLM) endpoints. 
+Existing AI development requires significant manual programming to connect user interfaces to Large Language Model (LLM) endpoints. The standard interface is usually limited to a basic textual chat with the ability to upload or download whole documents. While specific agentic interfaces exist, they are specialized for single tasks.
 
-The regular interface connecting users with language models is usually limited to a basic textual interface with outlets in upload or download whole documents at a time. Specific agentic interfaces exist, but they are specialized for a single task. 
+There is currently no method to create an appropriate, non-preexisting interactive visual interface *on the fly* during and by the discussion itself, unless the discussion is part of a specialized code assistance or code creation ("vibe") system geared toward general programming rather than a two-way Human-AI interactive experience. Overcoming this limitation is a primary objective of the disclosed invention.
 
-There is no way, on the fly, to create an appropriate non-prexisting interactive visual interface during a discussion and by the discussion, unless the discussion is part of a computer-programming "vibe" or "code assistance" system, and then it is geared towards general computer programs, not for creating a two way Human-AI interactive experience. Overcoming this limitation is the main objective of the disclosed patent herein. 
+Furthermore, AI models often encounter procedural or "thought pattern" limitations. By creating an open, real-time channel where the AI can pull data, and a user can input data and interact with a visual interface simultaneously, the interaction depth is greatly enhanced. This framework facilitates the development of a new class of short-range, fast-responding artificial intelligence models.
 
-There is a limited number of pre-existing interactive user interfaces integrated with the AI, besides the simple prompt and a few tweaking choices, such as like/dislike buttons, a document and media presenter, a slideshow of images, or a talkbox for interactive natural-voice discussions, and a "canvas" (OpenAI terminology) or "artifact preview" (Claude AI terminology) for previewing the output of on the fly code. 
-
-The AI often tells the user that it cannot do a task, because it is limited by its procedures and "thought patterns". In some cases, creating an open channel between the AI and the user, who can pump in data in realtime, and interact with a visual interface in realtime, may greatly enhance the possibilities for the AI interaction. The inventor of this patent expects this to bring about and lead to the development of new types of short range and fast responding artificial intelligence models.
-
-Current systems typically offer "black-box" outputs where the underlying logic or raw data processing is hidden from the user, limiting the user's ability to audit or steer the AI’s reasoning process, and at times, losing the ability to use the extra deep layers of information that exist beneath the surface. 
+Current systems offer "black-box" outputs where underlying logic or raw data processing is hidden, preventing users from auditing the reasoning process or accessing deeper layers of information existing beneath the interpreted surface.
 
 #### 3. Summary of the Invention
-The invention provides a "drag-and-drop" or "NL-defined" assembly environment (similar to website builders) where each UI component is a standalone module equipped with an **NL Acceptor**. This acceptor translates high-level human instructions into executable JavaScript instructions or API parameters. 
+The invention provides a "drag-and-drop" or "NL-defined" assembly environment where each UI component is a standalone module equipped with an **NL Acceptor**. This acceptor translates high-level human instructions into executable JavaScript instructions, computer programming logic, or structured API parameters. 
 
-Modules are linked via a semantic bus where the output of one component (e.g., a text mapper) serves as the contextual input for another (e.g., a versioning patch tool).
+Modules are linked via a semantic bus where the output of one component serves as the contextual input for another, allowing for the rapid construction of interactive dashboards that evolve alongside the AI conversation.
 
 ---
 
 #### 4. Detailed Description of Core Components
 
 **A. The NL Acceptor & Semantic Connectors**
-Each module within the framework includes a dedicated translation layer. This layer receives natural language "intents" and maps them to a specific functional schema. 
+Each module within the framework includes a dedicated translation layer that receives natural language "intents" and maps them to functional schemas.
 * **Input:** Natural Language.
-* **Internal Translation:** Mapping NL to JSON-based configuration, computer programming execution logic, or structured sequences of NL tasks with chained outputs and inputs. 
+* **Internal Translation:** Mapping NL to JSON-based configuration, execution logic, or structured sequences of NL tasks with chained outputs and inputs.
 * **Output:** Standardized text, JSON, or URI-linked data.
 
-Examples:  
-
-**B. The NL Emitting and NL Accepting Visual UI components"**    
-A critical feature of the framework are visual User-Interface components, that connect to the AI in raw natural language or in sturctured natural language i.e. filling a json schema. Thus the user can interact with the AI, which may be adjusted for such shorter and faster interactions. 
-
-Examples: 
-
-B1. Mapped segmentized text for modifying and discussing only sections of data. 
-
-B2. A local documentation server dedicated to the AI interaction, with partial document "ajax like" updates, and version control. 
-
-B3. Various document viewers - Audio and Video which could be set up in whole new ways to interact with natural language. 
-
-**C. Accumulative modules**  
-The LLM AI modules are mostly set up to receive less frequent prompts with wide and deep requests, sometimes complex and detailed. The accumulative modules store these requests perhaps after analyzing them and puting them in order, pouring out the goals and intents, procedures and sequences of tasks, when appropriate. 
-
-**D. The local orchestrator**
-A small local language model may suffice for orchestrating and doing preliminary analysis at the user's end. This may significantly lower the traffic needed to get deep and smart answers from the LLM. 
-
-**E. 
-
-**E. The "Raw Transcription" Data Layer (Non-Interpretive Output)**
-A possible additional feature of the framework is the ability to bypass "final conclusions" in favor of raw data evidence.
-* **Visual Data:** Instead of providing a final OCR string, the system outputs "detected edges," "lines," and "diagonals." This allows the human-in-the-loop, or dedicated software, or other AI modules, to perform the final deciphering based on raw geometric data. In the case of manuscript decyphering and ancient languages and documents, perhaps new understandings and interpretations can be derived.
-* **Phonetic Data:**  Instead of words in writing, the system supplies the phonemic possibilities it heard before translating into words and context. 
-* **Image Edge Detection Data:** Instead of supplying images, the system supplies SVG representations of the detected edges and shapes. 
-* **Analytical Data:** Instead of a summary, the system outputs "connected dots"—the raw relational data points—allowing the user to see the evidence trail rather than just the AI's final conclusion.
+**B. NL Emitting and NL Accepting Visual UI Components**
+A critical feature is the use of visual UI components that connect to the AI via raw or structured natural language (e.g., filling a JSON schema). This allows for rapid, short-burst interactions.
 
 
-**C. Stock Module Library (The "API" of Components)**
-The system includes a library of pre-configured, interoperable dashboards:
-1.  **Thesaurus Word Cloud:** An associative thinking tool that outputs semantic clusters.
-2.  **Text Mapper & Viewer:** A dual-pane interface showing a document outline (sections) with the ability to collapse/expand.
-3.  **Section Modification Module:** A version-control tool that saves modifications as local patches (deltas) rather than overwriting entire files, preserving document history at the section level.
-4.  **Multi-Modal Parts:** Interoperable modules for processing shape (geometry) and audio (phonetics) data using the same NL-acceptor logic.
+**Examples for Visual UI Dashboards - using NL Enabled Components:**
+
+* **B1. A Color Element:** A square or circle with a chosen color, instead of describing it with a number or a name, as would be done in a regular chat.  
+* **B2. A Dynamic Emoji:** A new emoji with a shape that is dynamically created by drawing, looking at an image, and or describing in natural language, used in the chat. 
+* **B3. Interactive schematic interface:** The user draws together with the AI, describing and correcting, taking the lead or yealding it, and outputing information so the AI can actually "see" the objects it is describing.  Useful for example when decyphering cuneiform letters. 
+This application could also look at images and output an outline of objects you point at and describe interactively. i.e. "You see? those are the eyes."
+* **B4. Segmented Text Mapping:** Components for modifying and discussing only specific sections of data.
+* **B5. A Local Documentation Server:** A dedicated secure server for AI interaction featuring "Ajax-like" partial document updates and granular version control. Bringing an end to the document access blockade. 
+* **B6. Interactive Document and Media Viewers:** Audio and video modules configured to interact directly with natural language prompts, or with cameras and sound or speech input for navigation, analysis, or presentation (i.e. a lip synch app, or a comprehensive read-aloud). 
+
+
+**C. Interactive component base and ready-made modules**
+
+**D. Assembly area**
+The AI will supply an area where besides describing what the user requires, the user may visually interact with a AI-Dashboard builder, using pre-built components or creating new ones. The building are would have a pool of pre-existing applications which can be tweaked. The difference between this and coding, is that it is all described in natural language with visual cues, structured carefully and rephrased to eliminate any ambiguities. For example, colors are chosen, and shown as color elements. 
+
+**E. Accumulative Modules**
+These modules act as a buffer for the LLM. While LLMs typically handle deep, complex prompts, the Accumulative Modules store, analyze, and order user requests and interactions over time. They "pour out" specific goals, intents, and task sequences only when appropriate, managing the flow of the AI's cognitive load.
+
+**F. The Local Orchestrator**
+The framework may utilize a small local language model to perform preliminary analysis and orchestration at the user's edge. This significantly reduces the data traffic required to elicit "smart" answers from a remote LLM and improves response latency.
+
+**F. The "Raw Transcription" Data Layer (Non-Interpretive Output)**
+The framework allows users to bypass the AI's "final conclusions" to access raw evidence:
+* **Visual/Manuscript Data:** Instead of a final OCR string, the system outputs "geometric primitives" (detected edges, lines, diagonals, circles). This enables humans or specialized software to perform the final deciphering, which is critical for manuscript analysis and ancient languages.
+* **Phonetic Data:** The system supplies the raw phonemic possibilities heard by the model before they are translated into words and context.
+* **Image Edge Detection:** The system provides SVG representations of detected shapes and edges rather than a rendered image.
+* **Analytical Data:** Instead of a summary, the system outputs "connected dots"—raw relational data points—allowing the user to audit the evidence trail.
+
+**F. Stock Module Library (The Component API)**
+A library of pre-configured, interoperable dashboards including:
+1.  **Thesaurus Word Cloud:** An associative thinking tool for semantic clusters.
+2.  **Text Mapper & Viewer:** A dual-pane interface showing a document outline with section-level collapse/expand functionality.
+3.  **Section Modification Module:** A version-control tool saving modifications as local patches (deltas) to preserve history at the section level.
 
 ---
 
 #### 5. Claims (Key Technical Novelties)
 
-1.  **A method for assembling AI applications** comprising:
+1.  **A method for the on-the-fly assembly of AI interfaces** comprising:
     * Providing a library of UI components, each containing an **NL Acceptor**.
-    * Defining the connection between components using natural language or a visual drag-and-drop interface.
-    * Translating component outputs into a shared semantic format (JSON/Text) for sequential AI processing.
+    * Defining connections between components through a natural language dialogue.
+    * Translating component outputs into a shared semantic format for real-time, short-range AI processing.
 
 2.  **A "Non-Interpretive" AI Output System** characterized by:
     * The suppression of final classification (e.g., OCR or Summarization).
-    * The delivery of "Raw Transcriptions" consisting of detected geometric primitives (edges, lines, circles) or raw evidence points.
-    * A user interface allowing a human operator to perform final deciphering based on said primitives.
+    * The delivery of "Raw Transcriptions" consisting of detected geometric primitives or phonemic possibilities.
+    * A user interface facilitating human-led deciphering based on said raw data.
 
-3.  **A Section-Based Versioning Tool** that:
-    * Maps a document into a hierarchical outline.
-    * Tracks modifications as localized patches tied to specific sections.
-    * Calculates "section drift" to maintain document integrity across multiple AI-driven edits.
-
----
-
-Would you like me to refine the specific language regarding the **"detected edges and lines"** to better distinguish your geometric primitive approach from standard computer vision?
+3.  **A Local Orchestration and Accumulation Layer** that:
+    * Uses a local language model to filter and sequence tasks.
+    * Manages "Accumulative Modules" to store and order user intents before passing refined prompts to a primary LLM.
