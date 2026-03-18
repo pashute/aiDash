@@ -75,8 +75,8 @@
     <textarea id="editor" spellcheck="false" placeholder='Paste JSON or text content here...'></textarea>
     
     <div class="sidebar">
-        <textarea id="instructionInput" placeholder="Describe the surgical fix..."></textarea>
-        <button id="sendBtn" class="btn" style="height: 45px;">[>] SEND SURGERY</button>
+        <textarea id="instructionInput" placeholder="Describe the fix..."></textarea>
+        <button id="sendBtn" class="btn" style="height: 45px;">[>] SEND</button>
         <button id="reportBtn" class="btn" onclick="document.getElementById('reportOverlay').style.display='block'">[Report]</button>
     </div>
 </div>
@@ -86,7 +86,7 @@
         <span>ERROR CONSOLE</span>
         <span style="cursor:pointer; color:var(--accent);" onclick="copyError()">[Copy Error]</span>
     </div>
-    <div id="errorLog">Secure proxy initialization complete. Ready for surgery.</div>
+    <div id="errorLog">Secure proxy initialization complete. Ready to fix the text.</div>
 </div>
 
 <div id="reportOverlay" onclick="this.style.display='none'">
@@ -127,15 +127,15 @@
         }
     };
 
-    // --- SURGERY LOGIC (Vercel Proxy) ---
+    // --- FIX INSTRUCTIONS ---
     els.send.onclick = async () => {
         const content = els.editor.value.trim();
         if (!content) return logMessage("Editor is empty.", "var(--error)");
 
         els.send.disabled = true;
-        logMessage("Surgery in progress via /api/init...", "var(--accent)");
+        logMessage("Modification in progress via /api/init...", "var(--accent)");
 
-        const surgeryPrompt = `ACT AS aiDash CodeFixer Surgical Module. 
+        const modificationPrompt = `ACT AS aiDash CodeFixer Module.
 CURRENT VERSION: ${codeVersion}
 FORMAT: STRICT JSON ONLY.
 {
@@ -159,26 +159,27 @@ ${content}`;
                     headers: { 'Content-Type': 'application/json' },
                     // Send  prompt. key is at Vercel 
                     body: JSON.stringify({ 
-                    prompt: surgeryPrompt
+                    prompt: modificationPrompt
                 })
             });            
             if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
 
-            const rawText = await response.text();
+            // assuming init.js returns { text: "..." }):
+            const result = await response.json();
             // Clean Markdown markers if AI included them
-            const cleanJson = rawText.replace(/```json|```/g, "").trim();
+            const cleanJson = result.text.replace(/```json|```/g, "").trim();
             const data = JSON.parse(cleanJson);
-            
-            applySurgicalFixes(data);
+         
+            applyFixes(data);
         } catch (err) {
-            logMessage(`Surgery Interrupted: ${err.message}`, "var(--error)");
+            logMessage(`Fixes interrupted: ${err.message}`, "var(--error)");
             setReportStatus(false, "System Failure");
         } finally {
             els.send.disabled = false;
         }
     };
 
-    function applySurgicalFixes(data) {
+    function applyFixes(data) {
         if (parseFloat(data.version) !== codeVersion) {
             logMessage(`Version Mismatch: Received ${data.version}, Expected ${codeVersion}`, "var(--error)");
             setReportStatus(false, "Sync Error");
@@ -207,10 +208,10 @@ ${content}`;
             els.editor.value = lines.join('\n');
             codeVersion = (parseFloat(codeVersion) + 0.1).toFixed(1);
             els.verTag.innerText = `Code Version: ${codeVersion}`;
-            logMessage("Surgery successful. Version incremented.", "var(--accent)");
+            logMessage("Fixes applied successfuly. Version incremented.", "var(--accent)");
             setReportStatus(true, "All Fixes OK");
         } else {
-            logMessage("Surgery failed: Some lines did not match the editor state.", "var(--error)");
+            logMessage("Fixes failed: Some lines did not match our text.", "var(--error)");
             setReportStatus(false, "Partial Breach");
             document.getElementById('reportOverlay').style.display = 'block';
         }
