@@ -42,9 +42,13 @@ Fixing only infected sections of code without affecting other parts.
 
 A specialized editing interface for precise, non-destructive text modification by the AI while chatting with the user, without the need for rewriting the whold document again and again. 
 
-#### Interface Elements (`codeFix.html`)
+#### Interface Elements (`codeFixer.html`)
+* **Title:** aiDash CodeFixer v{N.nn}
+* **Header row:**
+    * aiDashname: "**CodeFixer** - AI surgically modifiying text segments"
+    * aiDash version: take from title. (Use a large clear font for someone with eye problems) 
+
 * **Toolbar:**
-    * aiDshname: **CodeFixer** - The aiDashboard that can update a section of code. 
     * `[+]` **New code:** Clears editor and resets version to 1 (requires confirmation).
     * `[^]` **Upload** | `[V]` **Download** | `[D]` **Save to Drive** (Gemini integration).
     * `[<.][.>]` **Undo/Redo.**
