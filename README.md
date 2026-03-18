@@ -1,6 +1,6 @@
 # aiDash - Dashboards for AI integration
 
-Version 1.2
+Version 1.3
 
 aiDash serves as an "AJAX" for AI to update parts without updating the whole data,
 and as a UI for the AI and user to interact with each other visually. 
