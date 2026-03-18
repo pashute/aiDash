@@ -39,14 +39,26 @@
     </style>
 </head>
 <body>
-
-<div id="apiModal">
-    <div class="modal-content">
-        <h2 style="margin-top:0">Initialize Brain</h2>
-        <input type="password" id="apiKeyInput" placeholder="Paste Gemini Key...">
-        <button id="saveKey" style="width:100%; padding:12px; background: var(--accent); color:black; border:none; cursor:pointer; font-weight:bold; border-radius:5px;">ACTIVATE</button>
-    </div>
+<div id="auth-wall" style="display:none; position:fixed; inset:0; background:#000; color:#fff; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:monospace; text-align:center; padding:20px;">
+    <h1 style="color:#ff4444;">[!] ACCESS DENIED</h1>
+    <p style="font-size:1.2rem;">This aiDash should be used from the main menu.</p>
+    <button onclick="location.href='../index.html'" style="margin-top:20px; background:#222; color:#00ff88; border:1px solid #00ff88; padding:10px 20px; cursor:pointer;">Return to Main Menu</button>
 </div>
+<script>
+    (function() {
+        const key = sessionStorage.getItem('GEMINI_KEY');
+        const authWall = document.getElementById('auth-wall');
+        
+        if (!key) {
+            // Show the wall and stop any further scripts from running
+            authWall.style.display = 'flex';
+            window.stop(); 
+        } else {
+            // Remove the wall element so it doesn't interfere with the UI
+            authWall.remove();
+        }
+    })();
+</script>
 
 <div class="dashboard">
     <div class="version-tag" id="dynamicVersion"></div>
@@ -113,6 +125,19 @@
         els.console.innerHTML = `<div>[${time}] <b>${type}:</b> ${msg}</div>` + els.console.innerHTML;
     }
 
+    const askAI = async (prompt) => {
+        const key = sessionStorage.getItem('GEMINI_KEY');
+        const response = await fetch('/api/init', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt, apiKey: key })
+            });
+            if (!response.ok) throw new Error('Proxy error');
+            const data = await response.json();
+            // Assuming your proxy returns { text: "..." } or similar
+            return data.text || data; 
+    };
+    
     function setStep(idx) {
         els.steps.forEach((s, i) => s.classList.toggle('active', i === idx));
     }
@@ -131,7 +156,7 @@
             // STEP 1: Backstory
             setStep(0); // TX 1
             const prompt1 = `Part 1 of 3. Score: ${score}/100. Write a ${style} backstory fragment starting after "Because". NO caps, NO period.`;
-            const res1 = await model.generateContent(prompt1);
+            const res1 = await askAI(prompt1);
             setStep(1); // RX 1
             const storyText = res1.response.text().trim().toLowerCase();
             els.story.innerText = storyText;
@@ -140,7 +165,7 @@
             // STEP 2: The Mood (Memory Aware)
             setStep(2); // TX 2
             const prompt2 = `Part 2 of 3. Context: "Because ${storyText}". Provide one adjective/state for "I am". ${avoidList} NO caps, NO period.`;
-            const res2 = await model.generateContent(prompt2);
+            const res2 = await askAI(prompt2);
             setStep(3); // RX 2
             const moodText = res2.response.text().trim().toLowerCase();
             els.mood.innerText = moodText;
@@ -154,7 +179,7 @@
             // STEP 3: Reaction
             setStep(4); // TX 3
             const prompt3 = `Part 3 of 3. Context: "Because ${storyText}, I am ${moodText} and...". Provide a seamless physical reaction. NO caps, NO period.`;
-            const res3 = await model.generateContent(prompt3);
+            const res3 = await askAI(prompt2);
             setStep(5); // RX 3
             const reactText = res3.response.text().trim().toLowerCase();
             els.reaction.innerText = reactText;
@@ -162,16 +187,11 @@
 
         } catch (err) {
             log("ERR", err.message);
-            if (err.message.includes('403')) {
-                sessionStorage.removeItem('AI_DASH_KEY');
-                initAPI();
-            }
         } finally {
             setTimeout(() => els.steps.forEach(s => s.classList.remove('active')), 1500);
         }
     };
 
-    window.onload = initAPI;
 </script>
 </body>
 </html>
