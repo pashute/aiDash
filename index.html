@@ -3,79 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aiDash // Mission Control</title>
+    <title>aiDash v2.0</title>
     <style>
-        :root { --accent: #00ff88; --bg: #050505; --panel: #111; --text: #d4d4d4; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', monospace; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        :root { --bg: #050505; --panel: #111; --accent: #00ff88; --text: #d4d4d4; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
-        header { width: 100%; padding: 40px 0; text-align: center; border-bottom: 1px solid #222; background: #000; }
-        .logo { font-size: 2.5rem; font-weight: bold; color: var(--accent); letter-spacing: -2px; }
-        .version { font-family: monospace; font-size: 0.9rem; color: #666; }
+        header { width: 100%; padding: 60px 0; text-align: center; border-bottom: 1px solid #222; background: #000; }
+        .logo { font-size: 3rem; font-weight: bold; color: var(--accent); letter-spacing: -2px; margin: 0; }
+        #version-display { font-family: monospace; font-size: 1rem; color: #666; margin-top: 10px; border: 1px solid #333; padding: 4px 12px; display: inline-block; border-radius: 4px; }
 
-        .key-mgr { margin: 30px 0; background: var(--panel); padding: 15px; border-radius: 8px; border: 1px solid #333; width: 90%; max-width: 500px; }
-        input { background: #000; border: 1px solid #444; color: var(--accent); padding: 10px; width: 100%; box-sizing: border-box; border-radius: 4px; font-family: monospace; outline: none; }
+        .container { width: 90%; max-width: 900px; margin-top: 50px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+
+        .card { 
+            background: var(--panel); 
+            border: 1px solid #222; 
+            padding: 30px; 
+            border-radius: 8px; 
+            transition: 0.2s; 
+            cursor: pointer; 
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            position: relative;
+        }
+        .card:hover { border-color: var(--accent); transform: translateY(-4px); background: #161616; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .card h3 { margin: 0 0 12px 0; color: var(--accent); font-size: 1.5rem; }
+        .card p { font-size: 0.95rem; color: #888; line-height: 1.6; margin: 0; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 90%; max-width: 1000px; padding: 20px; }
-        .card { background: var(--panel); border: 1px solid #222; padding: 25px; border-radius: 12px; transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
-        .card:hover { border-color: var(--accent); transform: translateY(-5px); background: #1a1a1a; }
-        .card h3 { margin: 0 0 10px 0; color: var(--accent); }
-        .card p { font-size: 0.85rem; color: #999; line-height: 1.4; margin-bottom: 20px; }
-        .tag { font-size: 0.7rem; background: #222; padding: 3px 8px; border-radius: 4px; color: var(--accent); text-transform: uppercase; }
-
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .online { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-        .offline { background: #444; }
+        .status { margin-top: 25px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); display: flex; align-items: center; }
+        .status::before { content: ""; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; margin-right: 8px; box-shadow: 0 0 8px var(--accent); }
+        
+        .disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+        .disabled:hover { transform: none; border-color: #222; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo">aiDash</div>
-    <div class="version">System Version 1.4 // Protocol: Surgical AI Integration</div>
+    <h1 class="logo">aiDash</h1>
+    <div id="version-display">LOADING...</div>
 </header>
 
-<div class="key-mgr">
-    <div style="font-size: 0.7rem; color: #888; margin-bottom: 8px;">LOCAL SESSION API KEY (OPTIONAL FOR PROXY)</div>
-    <input type="password" id="apiKey" placeholder="Enter Gemini Key..." oninput="saveKey(this.value)">
-</div>
+<div class="container">
+    <div class="grid">
+        <a href="./dashboards/codeFixer.html" class="card">
+            <h3>CodeFixer</h3>
+            <p>Surgical-style text modification. Non-destructive repair using boundary verification and version tracking.</p>
+            <div class="status">Active Module</div>
+        </a>
 
-<div class="grid">
-    <div class="card" onclick="launch('codeFixer.html')">
-        <h3>CodeFixer</h3>
-        <p>Surgical AI editor for non-destructive text repair. Precise boundary guards and versioning.</p>
-        <span class="tag">Active</span>
-    </div>
+        <a href="./dashboards/moodStory.html" class="card">
+            <h3>Moody Dashboard</h3>
+            <p>Multi-stage narrative flow. Generates mood, backstory, and reactions through sequential AI states.</p>
+            <div class="status">Active Module</div>
+        </a>
 
-    <div class="card" onclick="launch('moodStory.html')">
-        <h3>Moody Dashboard</h3>
-        <p>Dynamic mood-to-story generator. Multi-stage AI orchestration with visual feedback.</p>
-        <span class="tag">Active</span>
-    </div>
-
-    <div class="card" style="opacity: 0.5; cursor: default;">
-        <h3>Text-Change Mapper</h3>
-        <p>Low-traffic document mapping. Section-based dirty marking and remapping logic.</p>
-        <span class="tag" style="color:#666">Coming Soon</span>
-    </div>
-
-    <div class="card" style="opacity: 0.5; cursor: default;">
-        <h3>Tasker</h3>
-        <p>Sequence-based JSON prompt playing. Storing and injecting results across tasks.</p>
-        <span class="tag" style="color:#666">In Dev</span>
+        <div class="card disabled">
+            <h3>Text-Change Mapper</h3>
+            <p>Differential document remapping. Minimizes token usage by reporting section drifts and local patches.</p>
+            <div class="status" style="color:#555; text-decoration: none;">○ Pending Deployment</div>
+        </div>
     </div>
 </div>
 
 <script>
-    // Load existing key if present
-    document.getElementById('apiKey').value = sessionStorage.getItem('GEMINI_KEY') || '';
-
-    function saveKey(val) {
-        sessionStorage.setItem('GEMINI_KEY', val);
-    }
-
-    function launch(page) {
-        // We assume the HTML files are inside the /dashboards folder
-        window.location.href = `./dashboards/${page}`;
+    // Extract version from <title> and display it
+    const pageTitle = document.title;
+    const versionMatch = pageTitle.match(/v\d+\.\d+/);
+    const displayElement = document.getElementById('version-display');
+    
+    if (versionMatch) {
+        displayElement.innerText = `Protocol ${versionMatch[0]}`;
+    } else {
+        displayElement.innerText = "Protocol Development";
     }
 </script>
 
