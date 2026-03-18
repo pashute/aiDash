@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>aiDash | CodeFixer v0.1</title>
+    <style>
+        :root { --accent: #00ff88; --bg: #0f0f0f; --panel: #1a1a1a; }
+        body { font-family: monospace; background: var(--bg); color: #ccc; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* Icon Toolbar */
+        .toolbar { background: #000; padding: 10px; display: flex; gap: 15px; border-bottom: 1px solid #333; }
+        .btn { cursor: pointer; padding: 5px 10px; border: 1px solid #444; border-radius: 4px; background: #111; color: var(--accent); }
+        .btn:hover { background: var(--accent); color: #000; }
+        .btn[title]:hover:after { content: attr(title); position: absolute; top: 40px; background: #333; color: #fff; padding: 5px; font-size: 10px; z-index: 10; }
+
+        .editor-container { display: grid; grid-template-columns: 1fr 350px; flex-grow: 1; overflow: hidden; }
+        
+        /* Main Code Area */
+        #codeArea { background: #050505; color: #00ff66; padding: 20px; border: none; resize: none; font-size: 14px; outline: none; line-height: 1.5; }
+        
+        /* Sidebar Interaction */
+        .sidebar { background: var(--panel); border-left: 1px solid #333; display: flex; flex-direction: column; padding: 15px; }
+        #promptInput { background: #000; color: #fff; border: 1px solid #444; padding: 10px; height: 80px; resize: none; border-radius: 4px; }
+        
+        /* The JSON Report Table */
+        .report-box { margin-top: 20px; flex-grow: 1; overflow-y: auto; font-size: 11px; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { border: 1px solid #333; padding: 4px; text-align: left; }
+        .old { color: #ff6666; text-decoration: line-through; }
+        .new { color: #66ff66; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <div class="btn" title="New Code" onclick="newCode()">+</div>
+    <div class="btn" title="Check Version">!</div>
+    <div class="btn" title="Upload">^</div>
+    <div class="btn" title="Download">V</div>
+    <select id="langChoice"><option>javascript</option><option>html</option><option>json</option></select>
+    <span id="versionLabel" style="margin-left: auto;">v1.0</span>
+</div>
+
+<div class="editor-container">
+    <textarea id="codeArea" spellcheck="false" placeholder="// Paste your code here..."></textarea>
+    
+    <div class="sidebar">
+        <textarea id="promptInput" placeholder="Describe the fix (e.g., 'Change the button color to red')"></textarea>
+        <button id="sendBtn" class="btn" style="margin-top:10px; width: 100%;">SEND FIX REQUEST</button>
+        
+        <div class="report-box" id="report">
+            <h4 style="color:var(--accent)">Correction Report</h4>
+            <table id="reportTable">
+                <thead><tr><th>Line</th><th>Change</th><th>Status</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+    let version = 1.0;
+    const els = {
+        code: document.getElementById('codeArea'),
+        prompt: document.getElementById('promptInput'),
+        report: document.querySelector('#reportTable tbody'),
+        version: document.getElementById('versionLabel'),
+        btn: document.getElementById('sendBtn')
+    };
+
+    // Stage 1 & 2 Handshake
+    els.btn.onclick = async () => {
+        const key = sessionStorage.getItem('AI_DASH_KEY') || prompt("Enter API Key");
+        if(!key) return;
+        sessionStorage.setItem('AI_DASH_KEY', key);
+
+        const genAI = new GoogleGenerativeAI(key);
+        const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+
+        const currentCode = els.code.value;
+        const instruction = els.prompt.value;
+
+        // The "aiDash" Protocol: Ask for JSON instructions, not code blocks
+        const systemPrompt = `You are an aiDash CodeFixer. 
+        Analyze the code and the instruction. Respond ONLY with a JSON array of fixes.
+        Each fix MUST have: "headline", "find" (exact string), "replace" (new string), "remark".
+        Code: \n${currentCode}`;
+
+        try {
+            els.btn.innerText = "FIXING...";
+            els.btn.disabled = true;
+
+            const result = await model.generateContent(instruction + "\n\n" + systemPrompt);
+            const rawJson = result.response.text().replace(/```json|```/g, "").trim();
+            const fixes = JSON.parse(rawJson);
+
+            applyFixes(fixes);
+        } catch (e) {
+            console.error(e);
+            alert("AI rejected the format or connection failed.");
+        } finally {
+            els.btn.innerText = "SEND FIX REQUEST";
+            els.btn.disabled = false;
+        }
+    };
+
+    function applyFixes(fixes) {
+        let newCode = els.code.value;
+        
+        fixes.forEach(fix => {
+            if (newCode.includes(fix.find)) {
+                const lineNum = newCode.substring(0, newCode.indexOf(fix.find)).split("\n").length;
+                
+                // The actual DOM/Data update
+                newCode = newCode.replace(fix.find, fix.replace);
+                
+                // UI interaction: Update the report table
+                const row = `<tr>
+                    <td>${lineNum}</td>
+                    <td><span class="old">${fix.find}</span><br><span class="new">${fix.replace}</span></td>
+                    <td style="color:var(--accent)">Done</td>
+                </tr>`;
+                els.report.innerHTML += row;
+            } else {
+                els.report.innerHTML += `<tr><td>?</td><td>${fix.headline}</td><td style="color:red">Failed (String not found)</td></tr>`;
+            }
+        });
+
+        els.code.value = newCode;
+        version = (parseFloat(version) + 0.1).toFixed(1);
+        els.version.innerText = `v${version}`;
+    }
+
+    window.newCode = () => { if(confirm("Clear editor?")) els.code.value = ""; };
+</script>
+</body>
+</html>
