@@ -2,138 +2,207 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>aiDash | CodeFixer v0.1</title>
+    <title>aiDash CodeFixer v1.5.0</title>
     <style>
-        :root { --accent: #00ff88; --bg: #0f0f0f; --panel: #1a1a1a; }
-        body { font-family: monospace; background: var(--bg); color: #ccc; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        :root { --accent: #00ff88; --bg: #0a0a0a; --panel: #161616; --error: #ff4444; --console: #1a1a1a; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: #e0e0e0; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Icon Toolbar */
-        .toolbar { background: #000; padding: 10px; display: flex; gap: 15px; border-bottom: 1px solid #333; }
-        .btn { cursor: pointer; padding: 5px 10px; border: 1px solid #444; border-radius: 4px; background: #111; color: var(--accent); }
-        .btn:hover { background: var(--accent); color: #000; }
-        .btn[title]:hover:after { content: attr(title); position: absolute; top: 40px; background: #333; color: #fff; padding: 5px; font-size: 10px; z-index: 10; }
+        header { background: #000; padding: 15px 25px; border-bottom: 2px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .brand h1 { margin: 0; font-size: 1.8rem; color: var(--accent); letter-spacing: -1px; }
 
-        .editor-container { display: grid; grid-template-columns: 1fr 350px; flex-grow: 1; overflow: hidden; }
+        .toolbar { background: #111; padding: 10px 20px; display: flex; gap: 15px; align-items: center; border-bottom: 1px solid #222; }
+        .btn { background: #222; color: var(--accent); border: 1px solid #444; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: monospace; transition: 0.2s; }
+        .btn:hover { background: var(--accent); color: #000; }
         
-        /* Main Code Area */
-        #codeArea { background: #050505; color: #00ff66; padding: 20px; border: none; resize: none; font-size: 14px; outline: none; line-height: 1.5; }
+        .main-layout { display: grid; grid-template-columns: 1fr 380px; flex-grow: 1; height: calc(100vh - 220px); }
+        #editor { background: #050505; color: #d4d4d4; padding: 20px; border: none; resize: none; font-size: 15px; font-family: 'Consolas', monospace; line-height: 1.5; outline: none; border-right: 1px solid #222; width: 100%; box-sizing: border-box; }
         
-        /* Sidebar Interaction */
-        .sidebar { background: var(--panel); border-left: 1px solid #333; display: flex; flex-direction: column; padding: 15px; }
-        #promptInput { background: #000; color: #fff; border: 1px solid #444; padding: 10px; height: 80px; resize: none; border-radius: 4px; }
-        
-        /* The JSON Report Table */
-        .report-box { margin-top: 20px; flex-grow: 1; overflow-y: auto; font-size: 11px; }
-        table { width: 100%; border-collapse: collapse; }
-        td, th { border: 1px solid #333; padding: 4px; text-align: left; }
-        .old { color: #ff6666; text-decoration: line-through; }
-        .new { color: #66ff66; }
+        .sidebar { background: var(--panel); padding: 20px; display: flex; flex-direction: column; gap: 12px; border-left: 1px solid #333; }
+        #instructionInput { background: #000; color: #fff; border: 1px solid #444; padding: 12px; height: 100px; border-radius: 4px; font-size: 0.9rem; resize: none; }
+
+        /* Error Console Area */
+        .console-area { background: var(--console); height: 100px; border-top: 2px solid #333; padding: 10px 20px; display: flex; flex-direction: column; }
+        .console-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #888; margin-bottom: 5px; }
+        #errorLog { color: var(--error); font-family: 'Consolas', monospace; font-size: 0.9rem; white-space: pre-wrap; overflow-y: auto; flex-grow: 1; }
+
+        #reportBtn { width: 100%; }
+        .sync-ok { border-color: var(--accent) !important; color: var(--accent) !important; }
+        .sync-fail { border-color: var(--error) !important; color: var(--error) !important; }
+
+        #reportOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; padding: 50px; }
+        .report-content { background: #111; border: 1px solid #444; border-radius: 8px; max-width: 800px; margin: auto; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
+<header>
+    <div class="brand"><h1>CodeFixer</h1></div>
+    <div style="font-family: monospace; color: var(--accent);" id="codeVersionTag">Code Version: 1.0</div>
+</header>
+
 <div class="toolbar">
-    <div class="btn" title="New Code" onclick="newCode()">+</div>
-    <div class="btn" title="Check Version">!</div>
-    <div class="btn" title="Upload">^</div>
-    <div class="btn" title="Download">V</div>
-    <select id="langChoice"><option>javascript</option><option>html</option><option>json</option></select>
-    <span id="versionLabel" style="margin-left: auto;">v1.0</span>
+    <div class="btn" title="New" onclick="location.reload()">[+]</div>
+    <select id="langSelect" style="background:#000; color:var(--accent); border:1px solid #444; padding:4px;">
+        <option>json</option><option>js</option>
+    </select>
+    <div class="btn" title="The Magic Wand" onclick="magicWand()">[Magic Wand] 🪄</div>
+    <div class="btn" title="Download" onclick="downloadText()">[V] Export</div>
 </div>
 
-<div class="editor-container">
-    <textarea id="codeArea" spellcheck="false" placeholder="// Paste your code here..."></textarea>
+<div class="main-layout">
+    <textarea id="editor" spellcheck="false" placeholder='Paste JSON here...'></textarea>
     
     <div class="sidebar">
-        <textarea id="promptInput" placeholder="Describe the fix (e.g., 'Change the button color to red')"></textarea>
-        <button id="sendBtn" class="btn" style="margin-top:10px; width: 100%;">SEND FIX REQUEST</button>
-        
-        <div class="report-box" id="report">
-            <h4 style="color:var(--accent)">Correction Report</h4>
-            <table id="reportTable">
-                <thead><tr><th>Line</th><th>Change</th><th>Status</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
+        <textarea id="instructionInput" placeholder="Surgical instructions..."></textarea>
+        <button id="sendBtn" class="btn" style="height: 45px;">[>] SEND SURGERY</button>
+        <button id="reportBtn" class="btn" onclick="document.getElementById('reportOverlay').style.display='block'">[Report]</button>
+    </div>
+</div>
+
+<div class="console-area">
+    <div class="console-header">
+        <span>ERROR CONSOLE</span>
+        <span style="cursor:pointer; color:var(--accent);" onclick="copyError()">[Copy Error]</span>
+    </div>
+    <div id="errorLog">Console ready...</div>
+</div>
+
+<div id="reportOverlay" onclick="this.style.display='none'">
+    <div class="report-content" onclick="event.stopPropagation()">
+        <h2 style="color:var(--accent); margin-top:0;">Correction Audit</h2>
+        <table id="auditTable">
+            <thead><tr><th>Line</th><th>Fix</th><th>Status</th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <button class="btn" style="margin-top:20px;" onclick="document.getElementById('reportOverlay').style.display='none'">Close</button>
     </div>
 </div>
 
 <script type="module">
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-    let version = 1.0;
+    let codeVersion = 1.0;
     const els = {
-        code: document.getElementById('codeArea'),
-        prompt: document.getElementById('promptInput'),
-        report: document.querySelector('#reportTable tbody'),
-        version: document.getElementById('versionLabel'),
-        btn: document.getElementById('sendBtn')
+        editor: document.getElementById('editor'),
+        instruction: document.getElementById('instructionInput'),
+        send: document.getElementById('sendBtn'),
+        report: document.getElementById('reportBtn'),
+        log: document.getElementById('errorLog'),
+        audit: document.querySelector('#auditTable tbody'),
+        verTag: document.getElementById('codeVersionTag')
     };
 
-    // Stage 1 & 2 Handshake
-    els.btn.onclick = async () => {
-        const key = sessionStorage.getItem('AI_DASH_KEY') || prompt("Enter API Key");
-        if(!key) return;
-        sessionStorage.setItem('AI_DASH_KEY', key);
-
-        const genAI = new GoogleGenerativeAI(key);
-        const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-
-        const currentCode = els.code.value;
-        const instruction = els.prompt.value;
-
-        // The "aiDash" Protocol: Ask for JSON instructions, not code blocks
-        const systemPrompt = `You are an aiDash CodeFixer. 
-        Analyze the code and the instruction. Respond ONLY with a JSON array of fixes.
-        Each fix MUST have: "headline", "find" (exact string), "replace" (new string), "remark".
-        Code: \n${currentCode}`;
-
+    // --- MAGIC WAND: Validate + Beautify + Colorize Reset ---
+    window.magicWand = () => {
+        const val = els.editor.value.trim();
+        if (!val) return;
+        
         try {
-            els.btn.innerText = "FIXING...";
-            els.btn.disabled = true;
-
-            const result = await model.generateContent(instruction + "\n\n" + systemPrompt);
-            const rawJson = result.response.text().replace(/```json|```/g, "").trim();
-            const fixes = JSON.parse(rawJson);
-
-            applyFixes(fixes);
+            // 1. Validate and Beautify (Step 1 & 2)
+            const obj = JSON.parse(val);
+            els.editor.value = JSON.stringify(obj, null, 4);
+            
+            // 2. Clear Errors
+            els.log.innerText = "Success: JSON validated and beautified.";
+            els.log.style.color = "var(--accent)";
+            setReportStatus(true, "Mascara OK");
         } catch (e) {
-            console.error(e);
-            alert("AI rejected the format or connection failed.");
-        } finally {
-            els.btn.innerText = "SEND FIX REQUEST";
-            els.btn.disabled = false;
+            // 3. Detailed Error Reporting
+            els.log.innerText = `JSON Error: ${e.message}`;
+            els.log.style.color = "var(--error)";
+            setReportStatus(false, "Syntax Error");
         }
     };
 
-    function applyFixes(fixes) {
-        let newCode = els.code.value;
-        
-        fixes.forEach(fix => {
-            if (newCode.includes(fix.find)) {
-                const lineNum = newCode.substring(0, newCode.indexOf(fix.find)).split("\n").length;
-                
-                // The actual DOM/Data update
-                newCode = newCode.replace(fix.find, fix.replace);
-                
-                // UI interaction: Update the report table
-                const row = `<tr>
-                    <td>${lineNum}</td>
-                    <td><span class="old">${fix.find}</span><br><span class="new">${fix.replace}</span></td>
-                    <td style="color:var(--accent)">Done</td>
-                </tr>`;
-                els.report.innerHTML += row;
+    window.copyError = () => {
+        navigator.clipboard.writeText(els.log.innerText);
+        const original = els.log.innerText;
+        els.log.innerText = "Copied to clipboard!";
+        setTimeout(() => els.log.innerText = original, 1000);
+    };
+
+    // --- SURGERY LOGIC ---
+    async function getApiKey() {
+        let key = sessionStorage.getItem('AI_DASH_KEY');
+        if (!key) {
+            key = prompt("Enter Gemini API Key:");
+            if (key) sessionStorage.setItem('AI_DASH_KEY', key);
+        }
+        return key;
+    }
+
+    els.send.onclick = async () => {
+        const key = await getApiKey();
+        if (!key) return;
+
+        const genAI = new GoogleGenerativeAI(key);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-preview" });
+
+        els.send.disabled = true;
+        els.report.innerText = "[Report] - Operating...";
+
+        const prompt = `ACT AS aiDash CodeFixer. 
+        CURRENT VERSION: ${codeVersion}
+        FORMAT: JSON ONLY.
+        {
+          "version": "${codeVersion}",
+          "fixes": [{ "line": number, "find": "string", "replace": "string", "prefix": "3 chars", "headline": "desc" }]
+        }
+        INSTRUCTION: ${els.instruction.value}
+        CONTENT: \n${els.editor.value}`;
+
+        try {
+            const result = await model.generateContent(prompt);
+            const data = JSON.parse(result.response.text().replace(/```json|```/g, ""));
+            applySurgicalFixes(data);
+        } catch (err) {
+            els.log.innerText = `Surgery Error: ${err.message}`;
+            setReportStatus(false, "Fix Failed");
+        } finally {
+            els.send.disabled = false;
+        }
+    };
+
+    function applySurgicalFixes(data) {
+        const lines = els.editor.value.split('\n');
+        let successes = 0;
+        els.audit.innerHTML = "";
+
+        data.fixes.forEach(fix => {
+            const lineIdx = fix.line - 1;
+            const target = lines[lineIdx];
+            if (target && target.includes(fix.find)) {
+                lines[lineIdx] = target.replace(fix.find, fix.replace);
+                successes++;
+                els.audit.innerHTML += `<tr><td>${fix.line}</td><td>${fix.headline}</td><td style="color:var(--accent)">OK</td></tr>`;
             } else {
-                els.report.innerHTML += `<tr><td>?</td><td>${fix.headline}</td><td style="color:red">Failed (String not found)</td></tr>`;
+                els.audit.innerHTML += `<tr><td>${fix.line}</td><td>${fix.headline}</td><td style="color:var(--error)">Breach</td></tr>`;
             }
         });
 
-        els.code.value = newCode;
-        version = (parseFloat(version) + 0.1).toFixed(1);
-        els.version.innerText = `v${version}`;
+        if (successes === data.fixes.length) {
+            els.editor.value = lines.join('\n');
+            codeVersion = (parseFloat(codeVersion) + 0.1).toFixed(1);
+            els.verTag.innerText = `Code Version: ${codeVersion}`;
+            setReportStatus(true, "All Fixes Applied");
+        } else {
+            setReportStatus(false, "Boundary Mismatch");
+        }
     }
 
-    window.newCode = () => { if(confirm("Clear editor?")) els.code.value = ""; };
+    function setReportStatus(ok, msg) {
+        els.report.className = "btn " + (ok ? "sync-ok" : "sync-fail");
+        els.report.innerText = `[Report] - ${msg}`;
+    }
+
+    window.downloadText = () => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([els.editor.value], {type:'text/plain'}));
+        a.download = `aiDash_export.json`;
+        a.click();
+    };
 </script>
 </body>
 </html>
