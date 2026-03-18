@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aiDash // Mission Control</title>
+    <style>
+        :root { --accent: #00ff88; --bg: #050505; --panel: #111; --text: #d4d4d4; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', monospace; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        header { width: 100%; padding: 40px 0; text-align: center; border-bottom: 1px solid #222; background: #000; }
+        .logo { font-size: 2.5rem; font-weight: bold; color: var(--accent); letter-spacing: -2px; }
+        .version { font-family: monospace; font-size: 0.9rem; color: #666; }
+
+        .key-mgr { margin: 30px 0; background: var(--panel); padding: 15px; border-radius: 8px; border: 1px solid #333; width: 90%; max-width: 500px; }
+        input { background: #000; border: 1px solid #444; color: var(--accent); padding: 10px; width: 100%; box-sizing: border-box; border-radius: 4px; font-family: monospace; outline: none; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 90%; max-width: 1000px; padding: 20px; }
+        .card { background: var(--panel); border: 1px solid #222; padding: 25px; border-radius: 12px; transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
+        .card:hover { border-color: var(--accent); transform: translateY(-5px); background: #1a1a1a; }
+        .card h3 { margin: 0 0 10px 0; color: var(--accent); }
+        .card p { font-size: 0.85rem; color: #999; line-height: 1.4; margin-bottom: 20px; }
+        .tag { font-size: 0.7rem; background: #222; padding: 3px 8px; border-radius: 4px; color: var(--accent); text-transform: uppercase; }
+
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .online { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .offline { background: #444; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">aiDash</div>
+    <div class="version">System Version 1.4 // Protocol: Surgical AI Integration</div>
+</header>
+
+<div class="key-mgr">
+    <div style="font-size: 0.7rem; color: #888; margin-bottom: 8px;">LOCAL SESSION API KEY (OPTIONAL FOR PROXY)</div>
+    <input type="password" id="apiKey" placeholder="Enter Gemini Key..." oninput="saveKey(this.value)">
+</div>
+
+<div class="grid">
+    <div class="card" onclick="launch('codeFixer.html')">
+        <h3>CodeFixer</h3>
+        <p>Surgical AI editor for non-destructive text repair. Precise boundary guards and versioning.</p>
+        <span class="tag">Active</span>
+    </div>
+
+    <div class="card" onclick="launch('moodStory.html')">
+        <h3>Moody Dashboard</h3>
+        <p>Dynamic mood-to-story generator. Multi-stage AI orchestration with visual feedback.</p>
+        <span class="tag">Active</span>
+    </div>
+
+    <div class="card" style="opacity: 0.5; cursor: default;">
+        <h3>Text-Change Mapper</h3>
+        <p>Low-traffic document mapping. Section-based dirty marking and remapping logic.</p>
+        <span class="tag" style="color:#666">Coming Soon</span>
+    </div>
+
+    <div class="card" style="opacity: 0.5; cursor: default;">
+        <h3>Tasker</h3>
+        <p>Sequence-based JSON prompt playing. Storing and injecting results across tasks.</p>
+        <span class="tag" style="color:#666">In Dev</span>
+    </div>
+</div>
+
+<script>
+    // Load existing key if present
+    document.getElementById('apiKey').value = sessionStorage.getItem('GEMINI_KEY') || '';
+
+    function saveKey(val) {
+        sessionStorage.setItem('GEMINI_KEY', val);
+    }
+
+    function launch(page) {
+        // We assume the HTML files are inside the /dashboards folder
+        window.location.href = `./dashboards/${page}`;
+    }
+</script>
+
+</body>
+</html>
