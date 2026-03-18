@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aiDash - moodStory v2.1</title>
+    <title>aiDash - moodStory v2.2</title>
     <style>
         :root { --accent: #00ff88; --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --sad-blue: #3498db; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
@@ -29,13 +29,8 @@
 
         button#trigger { align-self: flex-start; background: transparent; color: var(--accent); border: 2px solid var(--accent); padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
         button#trigger:hover { background: var(--accent); color: #000; }
-
-        .console { background: #000; color: #00ff00; font-family: 'Courier New', monospace; font-size: 0.8rem; padding: 15px; border-radius: 8px; height: 140px; overflow-y: auto; border: 1px solid #222; margin-top: 10px; border-left: 3px solid var(--accent); }
-        
+        .console { background: #000; color: #00ff00; font-family: 'Courier New', monospace; font-size: 0.8rem; padding: 15px; border-radius: 8px; height: 140px; overflow-y: auto; border: 1px solid #222; margin-top: 10px; border-left: 3px solid var(--accent); }        
         /* Secure Modal */
-        #apiModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--card); padding: 40px; border-radius: 20px; border: 1px solid var(--accent); width: 380px; text-align: center; }
-        #apiKeyInput { width: 100%; padding: 12px; background: #000; color: white; border: 1px solid #444; margin: 20px 0; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -102,48 +97,38 @@
         btn: document.getElementById('trigger'),
         console: document.getElementById('consoleLog'),
         steps: document.querySelectorAll('.step'),
-        modal: document.getElementById('apiModal'),
-        keyInput: document.getElementById('apiKeyInput'),
         version: document.getElementById('dynamicVersion')
     };
 
     els.version.innerText = document.title;
 
-    function initAPI() {
-        const key = sessionStorage.getItem('AI_DASH_KEY');
-        if (!key) {
-            els.modal.style.display = 'flex';
-        } else {
-            genAI = new GoogleGenerativeAI(key);
-            model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-            log("BOOT", "Sequential Logic Core Online.");
-        }
-    }
-
-    document.getElementById('saveKey').onclick = () => {
-        sessionStorage.setItem('AI_DASH_KEY', els.keyInput.value.trim());
-        els.modal.style.display = 'none';
-        initAPI();
-    };
-
     function log(type, msg) {
         const time = new Date().toLocaleTimeString().split(' ')[0];
         els.console.innerHTML = `<div>[${time}] <b>${type}:</b> ${msg}</div>` + els.console.innerHTML;
     }
-
-    const askAI = async (prompt) => {
-        const key = sessionStorage.getItem('GEMINI_KEY');
-        const response = await fetch('/api/init', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt, apiKey: key })
-            });
-            if (!response.ok) throw new Error('Proxy error');
-            const data = await response.json();
-            // Assuming your proxy returns { text: "..." } or similar
-            return data.text || data; 
-    };
     
+    const askAI = async (prompt) => {
+    try {
+        const response = await fetch('/api/init', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // Send ONLY the prompt. The server handles the key.
+            body: JSON.stringify({ prompt }) 
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Server Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // Return the text field from your init.js response
+        return data.text; 
+    } catch (err) {
+        console.error("AI Bridge Failure:", err);
+        throw err; // Allow the calling function to handle the UI error state
+        }
+    }; 
     function setStep(idx) {
         els.steps.forEach((s, i) => s.classList.toggle('active', i === idx));
     }
