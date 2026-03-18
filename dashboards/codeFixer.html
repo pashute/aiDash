@@ -157,10 +157,9 @@ ${content}`;
                 const response = await fetch('/api/init', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    // Send both the prompt AND the key to your Vercel function
+                    // Send  prompt. key is at Vercel 
                     body: JSON.stringify({ 
-                    prompt: surgeryPrompt,
-                    apiKey: sessionKey 
+                    prompt: surgeryPrompt
                 })
             });            
             if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
