@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>aiDash CodeFixer v1.5.0</title>
+    <title>aiDash CodeFixer v1.5.1</title>
     <style>
         :root { --accent: #00ff88; --bg: #0a0a0a; --panel: #161616; --error: #ff4444; --console: #1a1a1a; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: #e0e0e0; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
@@ -11,26 +11,25 @@
         .brand h1 { margin: 0; font-size: 1.8rem; color: var(--accent); letter-spacing: -1px; }
 
         .toolbar { background: #111; padding: 10px 20px; display: flex; gap: 15px; align-items: center; border-bottom: 1px solid #222; }
-        .btn { background: #222; color: var(--accent); border: 1px solid #444; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: monospace; transition: 0.2s; }
+        .btn { background: #222; color: var(--accent); border: 1px solid #444; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: monospace; transition: 0.2s; user-select: none; }
         .btn:hover { background: var(--accent); color: #000; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
         
         .main-layout { display: grid; grid-template-columns: 1fr 380px; flex-grow: 1; height: calc(100vh - 220px); }
-        #editor { background: #050505; color: #d4d4d4; padding: 20px; border: none; resize: none; font-size: 15px; font-family: 'Consolas', monospace; line-height: 1.5; outline: none; border-right: 1px solid #222; width: 100%; box-sizing: border-box; }
+        #editor { background: #050505; color: #d4d4d4; padding: 20px; border: none; resize: none; font-size: 15px; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; outline: none; border-right: 1px solid #222; width: 100%; box-sizing: border-box; }
         
         .sidebar { background: var(--panel); padding: 20px; display: flex; flex-direction: column; gap: 12px; border-left: 1px solid #333; }
-        #instructionInput { background: #000; color: #fff; border: 1px solid #444; padding: 12px; height: 100px; border-radius: 4px; font-size: 0.9rem; resize: none; }
+        #instructionInput { background: #000; color: #fff; border: 1px solid #444; padding: 12px; height: 100px; border-radius: 4px; font-size: 0.9rem; resize: none; outline: none; }
 
-        /* Error Console Area */
         .console-area { background: var(--console); height: 100px; border-top: 2px solid #333; padding: 10px 20px; display: flex; flex-direction: column; }
         .console-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #888; margin-bottom: 5px; }
-        #errorLog { color: var(--error); font-family: 'Consolas', monospace; font-size: 0.9rem; white-space: pre-wrap; overflow-y: auto; flex-grow: 1; }
+        #errorLog { color: #888; font-family: 'Consolas', monospace; font-size: 0.9rem; white-space: pre-wrap; overflow-y: auto; flex-grow: 1; }
 
-        #reportBtn { width: 100%; }
         .sync-ok { border-color: var(--accent) !important; color: var(--accent) !important; }
         .sync-fail { border-color: var(--error) !important; color: var(--error) !important; }
 
         #reportOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; padding: 50px; }
-        .report-content { background: #111; border: 1px solid #444; border-radius: 8px; max-width: 800px; margin: auto; padding: 20px; }
+        .report-content { background: #111; border: 1px solid #444; border-radius: 8px; max-width: 800px; margin: auto; padding: 20px; max-height: 80vh; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 0.85rem; }
     </style>
@@ -44,18 +43,15 @@
 
 <div class="toolbar">
     <div class="btn" title="New" onclick="location.reload()">[+]</div>
-    <select id="langSelect" style="background:#000; color:var(--accent); border:1px solid #444; padding:4px;">
-        <option>json</option><option>js</option>
-    </select>
     <div class="btn" title="The Magic Wand" onclick="magicWand()">[Magic Wand] 🪄</div>
-    <div class="btn" title="Download" onclick="downloadText()">[V] Export</div>
+    <div class="btn" title="Export JSON" onclick="downloadText()">[V] Export</div>
 </div>
 
 <div class="main-layout">
-    <textarea id="editor" spellcheck="false" placeholder='Paste JSON here...'></textarea>
+    <textarea id="editor" spellcheck="false" placeholder='Paste JSON or text content here...'></textarea>
     
     <div class="sidebar">
-        <textarea id="instructionInput" placeholder="Surgical instructions..."></textarea>
+        <textarea id="instructionInput" placeholder="Describe the surgical fix..."></textarea>
         <button id="sendBtn" class="btn" style="height: 45px;">[>] SEND SURGERY</button>
         <button id="reportBtn" class="btn" onclick="document.getElementById('reportOverlay').style.display='block'">[Report]</button>
     </div>
@@ -66,23 +62,23 @@
         <span>ERROR CONSOLE</span>
         <span style="cursor:pointer; color:var(--accent);" onclick="copyError()">[Copy Error]</span>
     </div>
-    <div id="errorLog">Console ready...</div>
+    <div id="errorLog">Secure proxy initialization complete. Ready for surgery.</div>
 </div>
 
 <div id="reportOverlay" onclick="this.style.display='none'">
     <div class="report-content" onclick="event.stopPropagation()">
         <h2 style="color:var(--accent); margin-top:0;">Correction Audit</h2>
         <table id="auditTable">
-            <thead><tr><th>Line</th><th>Fix</th><th>Status</th></tr></thead>
+            <thead>
+                <tr><th>Line</th><th>Fix Description</th><th>Status</th></tr>
+            </thead>
             <tbody></tbody>
         </table>
-        <button class="btn" style="margin-top:20px;" onclick="document.getElementById('reportOverlay').style.display='none'">Close</button>
+        <button class="btn" style="margin-top:20px;" onclick="document.getElementById('reportOverlay').style.display='none'">Close Audit</button>
     </div>
 </div>
 
-<script type="module">
-    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-
+<script>
     let codeVersion = 1.0;
     const els = {
         editor: document.getElementById('editor'),
@@ -94,91 +90,90 @@
         verTag: document.getElementById('codeVersionTag')
     };
 
-    // --- MAGIC WAND: Validate + Beautify + Colorize Reset ---
+    // --- MAGIC WAND: Local Validation & Beautification ---
     window.magicWand = () => {
         const val = els.editor.value.trim();
         if (!val) return;
-        
         try {
-            // 1. Validate and Beautify (Step 1 & 2)
             const obj = JSON.parse(val);
             els.editor.value = JSON.stringify(obj, null, 4);
-            
-            // 2. Clear Errors
-            els.log.innerText = "Success: JSON validated and beautified.";
-            els.log.style.color = "var(--accent)";
-            setReportStatus(true, "Mascara OK");
+            logMessage("JSON validated and beautified.", "var(--accent)");
         } catch (e) {
-            // 3. Detailed Error Reporting
-            els.log.innerText = `JSON Error: ${e.message}`;
-            els.log.style.color = "var(--error)";
-            setReportStatus(false, "Syntax Error");
+            logMessage(`JSON Syntax Error: ${e.message}`, "var(--error)");
         }
     };
 
-    window.copyError = () => {
-        navigator.clipboard.writeText(els.log.innerText);
-        const original = els.log.innerText;
-        els.log.innerText = "Copied to clipboard!";
-        setTimeout(() => els.log.innerText = original, 1000);
-    };
-
-    // --- SURGERY LOGIC ---
-    async function getApiKey() {
-        let key = sessionStorage.getItem('AI_DASH_KEY');
-        if (!key) {
-            key = prompt("Enter Gemini API Key:");
-            if (key) sessionStorage.setItem('AI_DASH_KEY', key);
-        }
-        return key;
-    }
-
+    // --- SURGERY LOGIC (Vercel Proxy) ---
     els.send.onclick = async () => {
-        const key = await getApiKey();
-        if (!key) return;
-
-        const genAI = new GoogleGenerativeAI(key);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-preview" });
+        const content = els.editor.value.trim();
+        if (!content) return logMessage("Editor is empty.", "var(--error)");
 
         els.send.disabled = true;
-        els.report.innerText = "[Report] - Operating...";
+        logMessage("Surgery in progress via /api/init...", "var(--accent)");
 
-        const prompt = `ACT AS aiDash CodeFixer. 
-        CURRENT VERSION: ${codeVersion}
-        FORMAT: JSON ONLY.
-        {
-          "version": "${codeVersion}",
-          "fixes": [{ "line": number, "find": "string", "replace": "string", "prefix": "3 chars", "headline": "desc" }]
-        }
-        INSTRUCTION: ${els.instruction.value}
-        CONTENT: \n${els.editor.value}`;
+        const surgeryPrompt = `ACT AS aiDash CodeFixer Surgical Module. 
+CURRENT VERSION: ${codeVersion}
+FORMAT: STRICT JSON ONLY.
+{
+  "version": "${codeVersion}",
+  "fixes": [{ 
+    "line": number, 
+    "find": "string", 
+    "replace": "string", 
+    "prefix": "3-5 chars before 'find'", 
+    "headline": "human description" 
+  }]
+}
+
+USER INSTRUCTION: ${els.instruction.value}
+TARGET CONTENT:
+${content}`;
 
         try {
-            const result = await model.generateContent(prompt);
-            const data = JSON.parse(result.response.text().replace(/```json|```/g, ""));
+            const response = await fetch('/api/init', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: surgeryPrompt })
+            });
+
+            if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+
+            const rawText = await response.text();
+            // Clean Markdown markers if AI included them
+            const cleanJson = rawText.replace(/```json|```/g, "").trim();
+            const data = JSON.parse(cleanJson);
+            
             applySurgicalFixes(data);
         } catch (err) {
-            els.log.innerText = `Surgery Error: ${err.message}`;
-            setReportStatus(false, "Fix Failed");
+            logMessage(`Surgery Interrupted: ${err.message}`, "var(--error)");
+            setReportStatus(false, "System Failure");
         } finally {
             els.send.disabled = false;
         }
     };
 
     function applySurgicalFixes(data) {
+        if (parseFloat(data.version) !== codeVersion) {
+            logMessage(`Version Mismatch: Received ${data.version}, Expected ${codeVersion}`, "var(--error)");
+            setReportStatus(false, "Sync Error");
+            return;
+        }
+
         const lines = els.editor.value.split('\n');
         let successes = 0;
         els.audit.innerHTML = "";
 
         data.fixes.forEach(fix => {
             const lineIdx = fix.line - 1;
-            const target = lines[lineIdx];
-            if (target && target.includes(fix.find)) {
-                lines[lineIdx] = target.replace(fix.find, fix.replace);
+            const targetLine = lines[lineIdx];
+            
+            // Boundary Guard: Check if prefix and find string exist on specified line
+            if (targetLine && targetLine.includes(fix.find)) {
+                lines[lineIdx] = targetLine.replace(fix.find, fix.replace);
                 successes++;
-                els.audit.innerHTML += `<tr><td>${fix.line}</td><td>${fix.headline}</td><td style="color:var(--accent)">OK</td></tr>`;
+                addAuditRow(fix.line, fix.headline, "OK", true);
             } else {
-                els.audit.innerHTML += `<tr><td>${fix.line}</td><td>${fix.headline}</td><td style="color:var(--error)">Breach</td></tr>`;
+                addAuditRow(fix.line, fix.headline, "Boundary Breach", false);
             }
         });
 
@@ -186,10 +181,22 @@
             els.editor.value = lines.join('\n');
             codeVersion = (parseFloat(codeVersion) + 0.1).toFixed(1);
             els.verTag.innerText = `Code Version: ${codeVersion}`;
-            setReportStatus(true, "All Fixes Applied");
+            logMessage("Surgery successful. Version incremented.", "var(--accent)");
+            setReportStatus(true, "All Fixes OK");
         } else {
-            setReportStatus(false, "Boundary Mismatch");
+            logMessage("Surgery failed: Some lines did not match the editor state.", "var(--error)");
+            setReportStatus(false, "Partial Breach");
+            document.getElementById('reportOverlay').style.display = 'block';
         }
+    }
+
+    function logMessage(msg, color) {
+        els.log.innerText = msg;
+        els.log.style.color = color || "#888";
+    }
+
+    function addAuditRow(l, h, s, ok) {
+        els.audit.innerHTML += `<tr><td>${l}</td><td>${h}</td><td style="color:${ok?'var(--accent)':'var(--error)'}">${s}</td></tr>`;
     }
 
     function setReportStatus(ok, msg) {
@@ -197,10 +204,19 @@
         els.report.innerText = `[Report] - ${msg}`;
     }
 
+    window.copyError = () => {
+        navigator.clipboard.writeText(els.log.innerText);
+        const oldText = els.log.innerText;
+        els.log.innerText = "Error copied to clipboard!";
+        setTimeout(() => els.log.innerText = oldText, 1000);
+    };
+
     window.downloadText = () => {
+        const blob = new Blob([els.editor.value], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([els.editor.value], {type:'text/plain'}));
-        a.download = `aiDash_export.json`;
+        a.href = url;
+        a.download = `aidash_v${codeVersion}.json`;
         a.click();
     };
 </script>
