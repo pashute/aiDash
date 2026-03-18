@@ -1,10 +1,15 @@
 # aiDash - Dashboards for AI integration
 
-Version 1.1
+Version 1.2
 
+aiDash serves as an "AJAX" for AI to update parts without updating the whole data,
+and as a UI for the AI and user to interact with each other visually. 
+- The UI creates and sends prompts (json, or natural languge or a mixture of both)
+- AI responses control UI elements. 
 
-UI with DOM manipulation through Fetch API, interacting with short AI changes, 
+The UI works with DOM manipulation through Fetch API, interacting with short AI changes, 
 limited to sections of the view. 
+
 
 ## Examples:
 
@@ -20,8 +25,76 @@ limited to sections of the view.
 - [ ] Stage 3:  Get AI created reaction. Keep to type and length. 
 
 ### Added in retrospect:
-- [ ] Notches on slider.  Large in mid, regular on quarters and ends.
-- [ ] Examples in prompts.  Given according to complexity and length.
+- [ ] Version
+  - [ ] Version control from title. So version change manually up on top.  
+  - [ ] Version shown on panel
+- [ ] Progress bar:  Nice lit up green 6 parts. one for step start one for step end. 
+= [ ] Slider
+  - [ ] Slider verticle. 
+  - [ ] With notches.  Large in mid, regular on quarters and ends.
+- [ ] Examples in prompts.
+  - [ ] Given according to complexity and length.
+  - [ ] Result from last step fed into next step
+
+### Code fixer
+
+The code fixer fixes the desired text segments that need fixing, without touching the rest of the code. 
+
+The HTML is as follows:  codeFix.html
+
+- All icon-buttons. Hovering over shows what they do.
+
+- btn: [+](New Code, are you sure?  yes: clear)
+- btn: [!](Check in, currently only updates version number)
+- btn: [^](upload)
+- btn: [V](Download)
+- btn  [D](Save to drive, use Gemini logged in user)
+
+- btns: [<.](undo) [.>](redo)
+
+- choice: [Language choice  V](js, md, text, html, json, yaml)       
+- autotext: Version: {N.n}
+
+- [ code area
+- ]
+
+- btns: [Paintbrush](colorize)   [Mascara](beautify)
+
+- [ input: Instructions Prompt                                         ]  btn:[>](Send)
+- grayedBtn: [Printer](Report) // shows JSON report with close button as a table.  
+
+#### Instructions
+##### Version
+- New code starts at version 1 
+- Version autoincrements by 1 per AI response.
+
+##### Sections
+- Code lock: From SEND pressed and until done updating, the code is locked to editing.
+- The json prompt sent talks to the AI in two stages
+
+##### Possible fixes:  
+
+sequences of any of the following: 
+   - find/replace (regex)  // for each replacement this checks we were in section boundary
+                          //   will reject changes done outside boundaries and report. 
+                          // if this cannot be done, it should reject all and report
+   - replace codeline.
+   - insert text (from line:char) // reports how many lines and chars added
+   - replace string (from line:char,  to line:char) // calculates what was removed and inserted till now. 
+  
+##### Fixed Sections
+
+- The corrections should be given as a json with each fix with:   
+1. Fix headline.
+2. Fix instructions
+2.1 fix instruction. 
+2.2 fix remarks if needed. 
+3. Status:  Done, Problem (with details)
+
+As the corrections are being made, create a correction json report
+with the lines of old and new text. (and line number)
+
+
 
 ## Complex dashboards
 
