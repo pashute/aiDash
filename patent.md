@@ -3,6 +3,53 @@
 **Project:** aiDash — Dashboards by AI for Interacting with AI  
 **Version:** 0.02
 
+/* todo:  
+- each claim and subclaim with index number no subsections
+- the bla of claim bla wherein bla bla - patent syntax
+- 78. A method for the assembly of on the fly AI-dashboard or AI-dashboard components.
+- 79. The ai-dashboard component with a NL input
+Note: not "each with" because if it has a nl output that's enough to make it an ai-dash component
+- 80.  ... of 79, using any, some or all of the following alternatives:
+81. a bla of 79 wherein the nl input uses keywords that must be embedded in the natural language
+82.  alternative of 80  wherein the nl input element uses a structured envelope ie json or yaml
+83.  an embodiment of 82 where the nl input element follows a predetermined schema
+84.  anlternative of 80 where the aidash component uses unrestricted nl and a parser is capable of detecting the parameters and values needed by the dashboard component.
+85.  an embodiment of 84 where the parser uses a fast local and or small language model for parsing and detecting the needed parameters
+86.  etc. etc. take it from here and do the same with everything else. 
+87. the ai-dashboard component as described in bla, containing a mapping of  one or more input natural language parameters to executable logic.
+88. the aidash of 87, wherein the exec logic controls a visual ui component
+89. the aidash of 87, wherein the exec logic controls a non visual ui component
+90. the aidash of 87, wherein the exec logic is passed on or processed and given to one or more logic elements or series of logic elements, for processing, transformation, persisting in a database or in memory, and any other computational activity.
+91. the aidash of 87 wherin the e.l. is passed or processed and given to one or more AI models for further processing, in a process planned for the ui or ux. 
+92.  the aidash of 62 where the aidash can be used in a designated area (similar to the openai canvas area).
+93.  the aidash of 62 where the aidash can be added to the main chat, and used directly inside it.                                                                               
+Use the following for a whole batch of claims: 
+Utilizing a visual assembly area where components (e.g., color elements with lock-enabled pickers) are configured via natural language and visual confirmation.
+- where the user's manipulated parts are described to the ai in natural language, or in text. i.e. svg. 
+- where the user's mainipulated parts are described in partial descriptions such as general descriptions using keywords. 
+- using jeneral descriptions in free nat lang
+- where the user and ai work on the ui element at the same time (like two users working on a shared spreadsheet in google docs)  
+- with mutual feedback
+-  out of place. just jotting down another example of elements:  a wordcloud showing related associations of phrases and words while chatting. user can interact to pull in words towards center, press the + and - sign of a selected word on its sides to make it smaller or bigger, and press the delete to delete, or add a new word or phrase (which always comes along with other words new words or phrases. if the word exists, it jumps to the center
+- Where the visual parts can be manipulated TOGETHER and at the same time as the AI is manipulating them.
+- where the together from claim bla where The AI can be interupted,
+- where the ai can prepare to send without interruption, so you can write.
+- another example:  a text draft component that doesnt saves the versions of what you wrote even if it wasnt sent because they were thinking.  "NOT SENT" promts. 
+- wherein Translating component outputs into a shared semantic format for processing.
+- wherein said translation is done by fast or real-time ai one or any or all of follwoing
+- wherein fast ai is local
+- wherein fast ai is small
+- alternatively wherein fast ai is a fast model with a separate context for the tasks at hand
+- wherein different tasks are setn to different model instances in parallel 
+- wh;ere ditto in parallel to diff models, each model selected, perhaps for performance and suitablitly 
+
+Think up more.
+
+Then we have examples of existing modules and dashboards. Explain their essensce in claims. 
+its provisional. each could become a patent of its own. 
+
+*/
+
 #### 1. Field of the Invention
 The present invention relates to the field of Human-Computer Interaction (HCI) and Artificial Intelligence. Specifically, it relates to a system for assembling simple or complex AI-driven dashboards using modular components that communicate via Natural Language (NL) or structured data (JSON) through standardized semantic interfaces.
 
