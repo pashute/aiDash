@@ -36,65 +36,37 @@ limited to sections of the view.
   - [ ] Given according to complexity and length.
   - [ ] Result from last step fed into next step
 
-### Code fixer
+### CodeFixer - the surgical AI editor
 
-The code fixer fixes the desired text segments that need fixing, without touching the rest of the code. 
+Fixing only infected sections of code without affecting other parts. 
 
-The HTML is as follows:  codeFix.html
+A specialized editing interface for precise, non-destructive text modification by the AI while chatting with the user, without the need for rewriting the whold document again and again. 
 
-- All icon-buttons. Hovering over shows what they do.
+#### Interface Elements (`codeFix.html`)
+* **Toolbar:**
+    * aiDshname: **CodeFixer** - The aiDashboard that can update a section of code. 
+    * `[+]` **New code:** Clears editor and resets version to 1 (requires confirmation).
+    * `[^]` **Upload** | `[V]` **Download** | `[D]` **Save to Drive** (Gemini integration).
+    * `[<.][.>]` **Undo/Redo.**
+    * **Language:** Dropdown selector (`js`, `md`, `html`, `json`, `yaml`).
+    * **Code Version:** Dynamic auto-incrementing label `{N.n}`.
+* **Editor:** Central text area for code input and modification.
+* **Refinement:** `[Paintbrush]` Colorize | `[Mascara]` Beautify.
+* **Interaction:** Instruction prompt input field + `[>]` Send button.
+* **Reporting:** `[Printer]` (Grayed/Active) Displays JSON correction report as a table.
 
-- btn: [+](New Code, are you sure?  yes: clear)
-- btn: [!](Check in, currently only updates version number)
-- btn: [^](upload)
-- btn: [V](Download)
-- btn  [D](Save to drive, use Gemini logged in user)
+#### Operational Logic
+1.  **Version Control:** Starts at v1.0; auto-increments with every AI response.
+2.  **State Lock:** Editor is locked to read-only from the moment **Send** is pressed until the update is complete.
+3.  **Validation:** AI performs fixes via regex find/replace, line-char insertion, or string substitution.
+4.  **Boundary Guard:** All changes are verified against section boundaries. Operations outside these bounds are rejected and reported.
 
-- btns: [<.](undo) [.>](redo)
-
-- choice: [Language choice  V](js, md, text, html, json, yaml)       
-- autotext: Version: {N.n}
-
-- [ code area
-- ]
-
-- btns: [Paintbrush](colorize)   [Mascara](beautify)
-
-- [ input: Instructions Prompt                                         ]  btn:[>](Send)
-- grayedBtn: [Printer](Report) // shows JSON report with close button as a table.  
-
-#### Instructions
-##### Version
-- New code starts at version 1 
-- Version autoincrements by 1 per AI response.
-
-##### Sections
-- Code lock: From SEND pressed and until done updating, the code is locked to editing.
-- The json prompt sent talks to the AI in two stages
-
-##### Possible fixes:  
-
-sequences of any of the following: 
-   - find/replace (regex)  // for each replacement this checks we were in section boundary
-                          //   will reject changes done outside boundaries and report. 
-                          // if this cannot be done, it should reject all and report
-   - replace codeline.
-   - insert text (from line:char) // reports how many lines and chars added
-   - replace string (from line:char,  to line:char) // calculates what was removed and inserted till now. 
-  
-##### Fixed Sections
-
-- The corrections should be given as a json with each fix with:   
-1. Fix headline.
-2. Fix instructions
-2.1 fix instruction. 
-2.2 fix remarks if needed. 
-3. Status:  Done, Problem (with details)
-
-As the corrections are being made, create a correction json report
-with the lines of old and new text. (and line number)
-
-
+#### The AI Handshake (JSON)
+The AI returns a structured correction object containing:
+1.  **Headline:** Brief description of the fix.
+2.  **Instructions:** Specific implementation steps and remarks.
+3.  **Status:** `Done` or `Problem` (including detailed error descriptions).
+4.  **Audit:** A side-by-side JSON report comparing old and new text with line numbers.
 
 ## Complex dashboards
 
