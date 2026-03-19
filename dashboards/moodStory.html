@@ -43,13 +43,19 @@
 <script>
    const authWall = document.getElementById('auth-wall');
 
-    // 1. Get the URL of the page the user came from
+    // Allow entry from this deployment's own hub page, including preview domains.
     const referrer = document.referrer;
-    
-    // 2. Define your valid entry point (The Hub)
-    // This checks if the referrer string contains your domain's index
-    const isFromHub = referrer.includes('aidashboards.vercel.app') && 
-                     (referrer.endsWith('/') || referrer.includes('index.html'));
+    let isFromHub = false;
+    try {
+        if (referrer) {
+            const refUrl = new URL(referrer);
+            const sameOrigin = refUrl.origin === window.location.origin;
+            const fromHubPath = refUrl.pathname === '/' || refUrl.pathname.endsWith('/index.html');
+            isFromHub = sameOrigin && fromHubPath;
+        }
+    } catch (e) {
+        isFromHub = false;
+    }
 
     if (!isFromHub) {
         // Show the wall and stop any further scripts from running
@@ -84,10 +90,7 @@
     </div>
 </div>
 
-<script type="module">
-    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-
-    let genAI, model;
+<script>
     let moodHistory = JSON.parse(localStorage.getItem('mood_history')) || [];
 
     const els = {
@@ -150,7 +153,7 @@
             const prompt1 = `Part 1 of 3. Score: ${score}/100. Write a ${style} backstory fragment starting after "Because". NO caps, NO period.`;
             const res1 = await askAI(prompt1);
             setStep(1); // RX 1
-            const storyText = res1.response.text().trim().toLowerCase();
+            const storyText = res1.trim().toLowerCase();
             els.story.innerText = storyText;
             els.story.classList.remove('loading-pulse');
 
@@ -159,7 +162,7 @@
             const prompt2 = `Part 2 of 3. Context: "Because ${storyText}". Provide one adjective/state for "I am". ${avoidList} NO caps, NO period.`;
             const res2 = await askAI(prompt2);
             setStep(3); // RX 2
-            const moodText = res2.response.text().trim().toLowerCase();
+            const moodText = res2.trim().toLowerCase();
             els.mood.innerText = moodText;
             els.mood.classList.remove('loading-pulse');
 
@@ -171,9 +174,9 @@
             // STEP 3: Reaction
             setStep(4); // TX 3
             const prompt3 = `Part 3 of 3. Context: "Because ${storyText}, I am ${moodText} and...". Provide a seamless physical reaction. NO caps, NO period.`;
-            const res3 = await askAI(prompt2);
+            const res3 = await askAI(prompt3);
             setStep(5); // RX 3
-            const reactText = res3.response.text().trim().toLowerCase();
+            const reactText = res3.trim().toLowerCase();
             els.reaction.innerText = reactText;
             els.reaction.classList.remove('loading-pulse');
 

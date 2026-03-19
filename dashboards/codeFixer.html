@@ -44,13 +44,19 @@
 <script>
     const authWall = document.getElementById('auth-wall');
     
-    // 1. Get the URL of the page the user came from
+    // Allow entry from this deployment's own hub page, including preview domains.
     const referrer = document.referrer;
-    
-    // 2. Define your valid entry point (The Hub)
-    // This checks if the referrer string contains your domain's index
-    const isFromHub = referrer.includes('aidashboards.vercel.app') && 
-                     (referrer.endsWith('/') || referrer.includes('index.html'));
+    let isFromHub = false;
+    try {
+        if (referrer) {
+            const refUrl = new URL(referrer);
+            const sameOrigin = refUrl.origin === window.location.origin;
+            const fromHubPath = refUrl.pathname === '/' || refUrl.pathname.endsWith('/index.html');
+            isFromHub = sameOrigin && fromHubPath;
+        }
+    } catch (e) {
+        isFromHub = false;
+    }
 
     if (!isFromHub) {
         // Show the wall and stop any further scripts from running
