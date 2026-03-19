@@ -34,39 +34,6 @@
     </style>
 </head>
 <body>
-<!-- Remark: the wall -->
-<div id="auth-wall" style="display:none; position:fixed; inset:0; background:#000; color:#fff; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:monospace; text-align:center; padding:20px;">
-    <h1 style="color:#ff4444;">[!] ACCESS DENIED</h1>
-    <p style="font-size:1.2rem;">This aiDash should be used from the main menu.</p>
-    <button onclick="location.href='../index.html'" style="margin-top:20px; background:#222; color:#00ff88; border:1px solid #00ff88; padding:10px 20px; cursor:pointer;">Return to Main Menu</button>
-</div>
-<script>
-   const authWall = document.getElementById('auth-wall');
-
-    // Allow entry from this deployment's own hub page, including preview domains.
-    const referrer = document.referrer;
-    let isFromHub = false;
-    try {
-        if (referrer) {
-            const refUrl = new URL(referrer);
-            const sameOrigin = refUrl.origin === window.location.origin;
-            const fromHubPath = refUrl.pathname === '/' || refUrl.pathname.endsWith('/index.html');
-            isFromHub = sameOrigin && fromHubPath;
-        }
-    } catch (e) {
-        isFromHub = false;
-    }
-
-    if (!isFromHub) {
-        // Show the wall and stop any further scripts from running
-        authWall.style.display = 'flex';
-        window.stop(); 
-    } else {  // everything's ok
-       // Remove the wall element so it doesn't interfere with the UI
-       authWall.remove();
-    }
-</script>
-
 
 <div class="dashboard">
     <div class="version-tag" id="dynamicVersion"></div>
