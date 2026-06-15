@@ -1,0 +1,2696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aiDash - StepConsolidator v0.9</title>
+    <style>
+        :root {
+            --bg: #f4f1ea;
+            --paper: #fffdfa;
+            --ink: #1f2328;
+            --muted: #5e6673;
+            --line: #d8d2c4;
+            --accent: #0d9488;
+            --accent-ink: #053b36;
+            --warn: #f59e0b;
+            --danger: #b91c1c;
+            --ok: #166534;
+            --pending-bg: #ffedd5;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 20% 0%, #fff6df 0, transparent 35%),
+                radial-gradient(circle at 80% 100%, #e6fbf8 0, transparent 40%),
+                var(--bg);
+            min-height: 100vh;
+        }
+
+        .app {
+            width: min(1380px, 96vw);
+            margin: 18px auto;
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 14px;
+        }
+
+        .panel {
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .sidebar {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            align-self: start;
+            position: sticky;
+            top: 12px;
+        }
+
+        .brand {
+            margin: 0 0 4px;
+            font-family: "Roboto Slab", Georgia, serif;
+            font-size: 1.2rem;
+            color: var(--accent-ink);
+        }
+
+        .meta {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        button {
+            border: 1px solid #bcc6c7;
+            background: #f8fafb;
+            color: #1d2a2f;
+            font: inherit;
+            font-size: 0.9rem;
+            border-radius: 9px;
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: transform 0.16s ease, background 0.16s ease;
+        }
+
+        button:hover { transform: translateY(-1px); }
+        button.primary { background: #dff7f5; border-color: #8ad4ce; }
+        button.warning { background: #fff2dd; border-color: #efc781; }
+        button.danger { background: #fee2e2; border-color: #f4a3a3; }
+        button.slim { padding: 4px 8px; font-size: 0.8rem; }
+
+        .workspace {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .title {
+            margin: 0;
+            font-family: "Roboto Slab", Georgia, serif;
+            letter-spacing: 0.2px;
+            font-size: 1.4rem;
+        }
+
+        .status {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .columns {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .col {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            min-height: 560px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .col-header {
+            background: #f5f4f1;
+            padding: 10px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .col-header h2 {
+            margin: 0;
+            font-size: 1rem;
+            font-family: "Roboto Slab", Georgia, serif;
+        }
+
+        .h-actions { display: flex; gap: 6px; }
+
+        .editor-box {
+            display: none;
+            border-top: 1px dashed var(--line);
+            padding: 8px;
+            background: #fcfbf7;
+            gap: 7px;
+        }
+
+        .editor-box.open { display: flex; flex-direction: column; }
+
+        textarea {
+            width: 100%;
+            min-height: 90px;
+            border: 1px solid #cdd5d8;
+            border-radius: 8px;
+            padding: 8px;
+            font: inherit;
+            resize: vertical;
+        }
+
+        .groups {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .group {
+            border: 1px solid #d8dfdf;
+            border-radius: 10px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .group-header {
+            padding: 6px 8px;
+            border-top: 1px solid #d6d3cd;
+            border-bottom: 1px solid #d6d3cd;
+            font-weight: 600;
+            background: #f7faf9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .group-header[data-group="none"] {
+            border-top: 2px solid #7aa8a3;
+            border-bottom: 2px solid #7aa8a3;
+            background: #e9f5f3;
+        }
+
+        .items {
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 24px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4px;
+        }
+
+        .item {
+            border: 1px solid #d7dddd;
+            border-radius: 8px;
+            padding: 6px 8px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            outline: none;
+        }
+
+        .item.dragging { opacity: 0.55; }
+
+        .item.pending {
+            background: var(--pending-bg);
+            border-color: #f3b45a;
+        }
+
+        .item span.badge {
+            background: #f59e0b;
+            color: #fff;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            flex: 0 0 auto;
+        }
+
+        .text {
+            flex: 1;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 0.9rem;
+        }
+
+        .item-actions {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+            flex: 0 0 auto;
+        }
+
+        .mini {
+            border: 1px solid #bac4c6;
+            border-radius: 6px;
+            background: #f8fafb;
+            padding: 2px 5px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .pair-stack {
+            margin-left: 14px;
+            border-left: 2px dashed #c7d3d4;
+            padding-left: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .hint {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin: 2px 4px 0;
+        }
+
+        .drop-over {
+            box-shadow: inset 0 0 0 2px #4cbeb4;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.42);
+            display: none;
+            place-items: center;
+            z-index: 40;
+        }
+
+        .modal.open { display: grid; }
+
+        .modal-card {
+            width: min(760px, 92vw);
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            padding: 12px;
+        }
+
+        .modal-card pre {
+            margin: 0;
+            max-height: 55vh;
+            overflow: auto;
+            background: #f8fafc;
+            border: 1px solid #d8e0e2;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.88rem;
+        }
+
+        .modal-row {
+            margin-top: 8px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        @media (max-width: 1080px) {
+            .app { grid-template-columns: 1fr; }
+            .sidebar { position: static; }
+            .columns { grid-template-columns: 1fr; }
+            .col { min-height: 380px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="panel sidebar">
+            <h1 class="brand">StepConsolidator</h1>
+            <p class="meta">feature/StepConsolidator #1</p>
+            <button id="suggestBtn" class="primary">Suggest</button>
+            <button id="categorizeBtn" class="primary">Categorize</button>
+            <button id="pairBtn" class="primary">Pair</button>
+            <button id="loadLeftBtn">Load Left</button>
+            <button id="loadRightBtn">Load Right</button>
+            <button id="undoBtn">Undo</button>
+            <button id="redoBtn">Redo</button>
+            <button id="savePendingBtn" class="warning">Save Pending</button>
+            <button id="retryBtn" class="warning">Retry</button>
+            <button id="resetBtn">Reset</button>
+            <button id="clearBtn" class="danger">Clear</button>
+            <button id="chatBtn">Chat</button>
+            <button id="exportBtn">Export</button>
+        </aside>
+
+        <main class="panel workspace">
+            <div class="title-row">
+                <h2 class="title">Category | Planned | Actual</h2>
+                <span id="statusText" class="status">Ready</span>
+            </div>
+            <p class="hint">Header reference: Unsorted, Set, Step, Category</p>
+
+            <div class="columns">
+                <section class="col" id="categoryCol">
+                    <div class="col-header">
+                        <h2>Category</h2>
+                        <div class="h-actions">
+                            <button class="slim" data-open-editor="category">✏</button>
+                            <button class="slim danger" data-clear-col="category">X</button>
+                        </div>
+                    </div>
+                    <div id="editor-category" class="editor-box">
+                        <textarea placeholder="One category per line"></textarea>
+                        <button class="slim" data-save-editor="category">Save</button>
+                    </div>
+                    <div class="groups" id="categoryGroups"></div>
+                </section>
+
+                <section class="col" id="plannedCol">
+                    <div class="col-header">
+                        <h2>Planned</h2>
+                        <div class="h-actions">
+                            <button class="slim" data-open-editor="planned">✏</button>
+                            <button class="slim danger" data-clear-col="planned">X</button>
+                        </div>
+                    </div>
+                    <div id="editor-planned" class="editor-box">
+                        <textarea placeholder="One planned step per line"></textarea>
+                        <button class="slim" data-save-editor="planned">Save</button>
+                    </div>
+                    <div class="groups" id="plannedGroups"></div>
+                </section>
+
+                <section class="col" id="actualCol">
+                    <div class="col-header">
+                        <h2>Actual</h2>
+                        <div class="h-actions">
+                            <button class="slim" data-open-editor="actual">✏</button>
+                            <button class="slim danger" data-clear-col="actual">X</button>
+                        </div>
+                    </div>
+                    <div id="editor-actual" class="editor-box">
+                        <textarea placeholder="One actual step per line"></textarea>
+                        <button class="slim" data-save-editor="actual">Save</button>
+                    </div>
+                    <div class="groups" id="actualGroups"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="exportModal">
+        <div class="modal-card">
+            <h3>Export Markdown</h3>
+            <pre id="exportText"></pre>
+            <div class="modal-row">
+                <button id="copyExportBtn">Copy to Clipboard</button>
+                <button id="closeExportBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            categories: [],
+            planned: [],
+            actual: [],
+            undo: [],
+            redo: [],
+            status: "Ready",
+            idCounter: 1,
+            activeEditor: null,
+            selectedItemId: null,
+            drag: null,
+            lastAiAction: null,
+            aiVariant: 0
+        };
+
+        const ids = {
+            categoryGroups: document.getElementById("categoryGroups"),
+            plannedGroups: document.getElementById("plannedGroups"),
+            actualGroups: document.getElementById("actualGroups"),
+            statusText: document.getElementById("statusText"),
+            exportModal: document.getElementById("exportModal"),
+            exportText: document.getElementById("exportText")
+        };
+
+        const seedPlanned = [
+            "- [ ] Parse issue details",
+            "- [ ] Build UI layout",
+            "- [ ] Implement drag and drop",
+            "- [ ] Export markdown"
+        ];
+
+        const seedActual = [
+            "- [ ] Retrieved issue #1 context",
+            "- [ ] Drafted columns and controls",
+            "- [ ] Wired item editor",
+            "- [ ] Added export modal"
+        ];
+
+        initialize();
+
+        function initialize() {
+            seedPlanned.forEach((line) => addStep("planned", normalizeStepLine(line)));
+            seedActual.forEach((line) => addStep("actual", normalizeStepLine(line)));
+            wireUi();
+            render();
+        }
+
+        function makeId(prefix) {
+            const id = `${prefix}-${state.idCounter}`;
+            state.idCounter += 1;
+            return id;
+        }
+
+        function deepClone(input) {
+            return JSON.parse(JSON.stringify(input));
+        }
+
+        function pushUndo(reason) {
+            state.undo.push({
+                reason,
+                categories: deepClone(state.categories),
+                planned: deepClone(state.planned),
+                actual: deepClone(state.actual),
+                aiVariant: state.aiVariant,
+                lastAiAction: state.lastAiAction
+            });
+            if (state.undo.length > 50) {
+                state.undo.shift();
+            }
+            state.redo = [];
+        }
+
+        function restoreSnapshot(snapshot) {
+            state.categories = deepClone(snapshot.categories);
+            state.planned = deepClone(snapshot.planned);
+            state.actual = deepClone(snapshot.actual);
+            state.aiVariant = snapshot.aiVariant || 0;
+            state.lastAiAction = snapshot.lastAiAction || null;
+        }
+
+        function setStatus(text) {
+            state.status = text;
+            ids.statusText.textContent = text;
+        }
+
+        function normalizeStepLine(line) {
+            const trimmed = line.trim();
+            if (!trimmed) return "";
+            if (/^-\s*\[[ xX]?\]/.test(trimmed)) return trimmed;
+            if (/^-\s+/.test(trimmed)) return `- [ ] ${trimmed.replace(/^-\s+/, "")}`;
+            return `- [ ] ${trimmed}`;
+        }
+
+        function stepTextOnly(fullText) {
+            return fullText.replace(/^-\s*\[[ xX]?\]\s*/, "").trim();
+        }
+
+        function addStep(kind, text, options = {}) {
+            if (!text) return;
+            const item = {
+                id: makeId(kind),
+                text,
+                categoryId: options.categoryId || null,
+                pending: Boolean(options.pending)
+            };
+
+            if (kind === "planned") {
+                state.planned.push(item);
+            } else {
+                item.plannedId = options.plannedId || null;
+                state.actual.push(item);
+            }
+        }
+
+        function addCategory(name, options = {}) {
+            const cleaned = name.trim();
+            if (!cleaned) return;
+            state.categories.push({
+                id: makeId("cat"),
+                name: cleaned,
+                pending: Boolean(options.pending)
+            });
+        }
+
+        function wireUi() {
+            document.querySelectorAll("[data-open-editor]").forEach((btn) => {
+                btn.addEventListener("click", () => openEditor(btn.dataset.openEditor));
+            });
+
+            document.querySelectorAll("[data-save-editor]").forEach((btn) => {
+                btn.addEventListener("click", () => saveEditor(btn.dataset.saveEditor));
+            });
+
+            document.querySelectorAll("[data-clear-col]").forEach((btn) => {
+                btn.addEventListener("click", () => clearColumn(btn.dataset.clearCol));
+            });
+
+            document.getElementById("suggestBtn").addEventListener("click", suggestCategories);
+            document.getElementById("categorizeBtn").addEventListener("click", categorizePlanned);
+            document.getElementById("pairBtn").addEventListener("click", pairActual);
+            document.getElementById("loadLeftBtn").addEventListener("click", () => {
+                setStatus("Load Left placeholder: wire your file/source input here");
+            });
+            document.getElementById("loadRightBtn").addEventListener("click", () => {
+                setStatus("Load Right placeholder: wire your file/source input here");
+            });
+            document.getElementById("undoBtn").addEventListener("click", undoAction);
+            document.getElementById("redoBtn").addEventListener("click", redoAction);
+            document.getElementById("resetBtn").addEventListener("click", resetAssignments);
+            document.getElementById("clearBtn").addEventListener("click", clearAll);
+            document.getElementById("exportBtn").addEventListener("click", openExport);
+            document.getElementById("chatBtn").addEventListener("click", () => {
+                setStatus("Chat placeholder: connect this to your assistant channel");
+            });
+            document.getElementById("savePendingBtn").addEventListener("click", savePending);
+            document.getElementById("retryBtn").addEventListener("click", retryLastAi);
+            document.getElementById("copyExportBtn").addEventListener("click", copyExport);
+            document.getElementById("closeExportBtn").addEventListener("click", () => ids.exportModal.classList.remove("open"));
+            ids.exportModal.addEventListener("click", (event) => {
+                if (event.target === ids.exportModal) ids.exportModal.classList.remove("open");
+            });
+
+            document.addEventListener("keydown", handleGlobalDelete);
+        }
+
+        function openEditor(kind) {
+            document.querySelectorAll(".editor-box").forEach((box) => box.classList.remove("open"));
+            const target = document.getElementById(`editor-${kind}`);
+            if (state.activeEditor === kind) {
+                state.activeEditor = null;
+                return;
+            }
+            state.activeEditor = kind;
+            target.classList.add("open");
+        }
+
+        function saveEditor(kind) {
+            const box = document.getElementById(`editor-${kind}`);
+            const area = box.querySelector("textarea");
+            const lines = area.value.split("\n").map((x) => x.trim()).filter(Boolean);
+            if (!lines.length) {
+                area.value = "";
+                box.classList.remove("open");
+                state.activeEditor = null;
+                return;
+            }
+
+            pushUndo(`editor:${kind}`);
+
+            if (kind === "category") {
+                lines.forEach((line) => addCategory(line));
+            } else if (kind === "planned") {
+                lines.forEach((line) => addStep("planned", normalizeStepLine(line)));
+            } else if (kind === "actual") {
+                lines.forEach((line) => addStep("actual", normalizeStepLine(line)));
+            }
+
+            area.value = "";
+            box.classList.remove("open");
+            state.activeEditor = null;
+            setStatus(`Saved ${lines.length} line(s) to ${kind}`);
+            render();
+        }
+
+        function clearColumn(kind) {
+            pushUndo(`clear:${kind}`);
+            if (kind === "category") {
+                state.categories = [];
+                state.planned.forEach((item) => { item.categoryId = null; });
+                state.actual.forEach((item) => { item.categoryId = null; });
+                setStatus("Category column cleared; No Category preserved");
+            }
+
+            if (kind === "planned") {
+                const previousById = new Map(state.planned.map((p) => [p.id, p.categoryId]));
+                state.actual.forEach((item) => {
+                    if (item.plannedId && previousById.has(item.plannedId)) {
+                        if (!item.categoryId) item.categoryId = previousById.get(item.plannedId);
+                        item.plannedId = null;
+                    }
+                });
+                state.planned = [];
+                setStatus("Planned column cleared; actual items kept and unpaired");
+            }
+
+            if (kind === "actual") {
+                state.actual = [];
+                setStatus("Actual column cleared and pairings dissolved");
+            }
+
+            render();
+        }
+
+        function normalizeBuckets() {
+            const groups = [{ id: "none", name: "No Category" }];
+            state.categories.forEach((cat) => groups.push({ id: cat.id, name: cat.name }));
+            return groups;
+        }
+
+        function render() {
+            ids.categoryGroups.innerHTML = "";
+            ids.plannedGroups.innerHTML = "";
+            ids.actualGroups.innerHTML = "";
+
+            const groups = normalizeBuckets();
+            groups.forEach((group) => {
+                ids.categoryGroups.appendChild(renderCategoryGroup(group));
+                ids.plannedGroups.appendChild(renderPlannedGroup(group));
+                ids.actualGroups.appendChild(renderActualGroup(group));
+            });
+
+            ids.statusText.textContent = state.status;
+        }
+
+        function renderCategoryGroup(group) {
+            const shell = document.createElement("section");
+            shell.className = "group";
+
+            const header = document.createElement("div");
+            header.className = "group-header";
+            header.dataset.group = group.id;
+            header.dataset.dropType = "category-target";
+            header.dataset.groupId = group.id;
+            header.innerHTML = `<span>${group.name}</span>`;
+
+            if (group.id !== "none") {
+                const category = state.categories.find((cat) => cat.id === group.id);
+                const actions = document.createElement("div");
+                actions.className = "item-actions";
+                if (category && category.pending) {
+                    actions.appendChild(makePendingBadge());
+                    actions.appendChild(makeMiniButton("✓", () => acceptPending("category", category.id)));
+                    actions.appendChild(makeMiniButton("✗", () => rejectPending("category", category.id), "danger"));
+                }
+                actions.appendChild(makeMiniButton("↕", () => {}, "neutral"));
+                header.appendChild(actions);
+
+                header.draggable = true;
+                header.dataset.dragType = "category";
+                header.dataset.id = group.id;
+                header.addEventListener("dblclick", () => inlineEditCategory(group.id));
+                bindDragEvents(header);
+            }
+
+            bindDropZone(header);
+            shell.appendChild(header);
+
+            const info = document.createElement("p");
+            info.className = "hint";
+            info.textContent = group.id === "none"
+                ? "Default zone. Drop here to unassign categories or remove pairings."
+                : "Drag category headers to reorder.";
+            shell.appendChild(info);
+            return shell;
+        }
+
+        function renderPlannedGroup(group) {
+            const shell = document.createElement("section");
+            shell.className = "group";
+
+            const header = document.createElement("div");
+            header.className = "group-header";
+            header.dataset.group = group.id;
+            header.dataset.dropType = "planned-group";
+            header.dataset.groupId = group.id;
+            header.textContent = group.name;
+            bindDropZone(header);
+            shell.appendChild(header);
+
+            const itemsWrap = document.createElement("div");
+            itemsWrap.className = "items";
+
+            const plannedItems = state.planned.filter((item) => (item.categoryId || "none") === group.id);
+            if (group.id === "none") {
+                const instruction = document.createElement("p");
+                instruction.className = "hint";
+                instruction.textContent = "Unsorted planned steps live here. Drag into categories when ready.";
+                itemsWrap.appendChild(instruction);
+            }
+
+            plannedItems.forEach((item) => {
+                itemsWrap.appendChild(renderPlannedRow(item));
+            });
+
+            shell.appendChild(itemsWrap);
+            return shell;
+        }
+
+        function renderPlannedRow(item) {
+            const row = document.createElement("div");
+            row.className = "row";
+            row.appendChild(renderItem("planned", item));
+
+            const pairedActual = state.actual.filter((a) => a.plannedId === item.id);
+            if (pairedActual.length) {
+                const stack = document.createElement("div");
+                stack.className = "pair-stack";
+                pairedActual.forEach((a) => {
+                    stack.appendChild(renderItem("actual", a));
+                });
+                row.appendChild(stack);
+            }
+            return row;
+        }
+
+        function renderActualGroup(group) {
+            const shell = document.createElement("section");
+            shell.className = "group";
+
+            const header = document.createElement("div");
+            header.className = "group-header";
+            header.dataset.group = group.id;
+            header.dataset.dropType = "actual-group";
+            header.dataset.groupId = group.id;
+            header.textContent = group.name;
+            bindDropZone(header);
+            shell.appendChild(header);
+
+            const itemsWrap = document.createElement("div");
+            itemsWrap.className = "items";
+            const unpairedActual = state.actual.filter((item) => !item.plannedId && (item.categoryId || "none") === group.id);
+            unpairedActual.forEach((item) => itemsWrap.appendChild(renderItem("actual", item)));
+
+            shell.appendChild(itemsWrap);
+            return shell;
+        }
+
+        function renderItem(kind, item) {
+            const node = document.createElement("div");
+            node.className = `item${item.pending ? " pending" : ""}`;
+            node.tabIndex = 0;
+            node.draggable = true;
+            node.dataset.dragType = kind;
+            node.dataset.id = item.id;
+            node.dataset.dropType = kind;
+            node.dataset.kind = kind;
+            bindDragEvents(node);
+            bindDropZone(node);
+
+            node.addEventListener("focus", () => {
+                state.selectedItemId = item.id;
+            });
+
+            node.addEventListener("dblclick", () => inlineEditItem(kind, item.id));
+
+            const text = document.createElement("span");
+            text.className = "text";
+            text.textContent = item.text;
+
+            const actions = document.createElement("div");
+            actions.className = "item-actions";
+            if (item.pending) {
+                actions.appendChild(makePendingBadge());
+                actions.appendChild(makeMiniButton("✓", () => acceptPending(kind, item.id)));
+                actions.appendChild(makeMiniButton("✗", () => rejectPending(kind, item.id), "danger"));
+            }
+
+            node.appendChild(text);
+            node.appendChild(actions);
+            return node;
+        }
+
+        function makePendingBadge() {
+            const badge = document.createElement("span");
+            badge.className = "badge";
+            badge.textContent = "?";
+            return badge;
+        }
+
+        function makeMiniButton(label, onClick, kind = "neutral") {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "mini";
+            btn.textContent = label;
+            if (kind === "danger") {
+                btn.style.borderColor = "#e6a8a8";
+                btn.style.background = "#fee2e2";
+            }
+            btn.addEventListener("click", (event) => {
+                event.stopPropagation();
+                onClick();
+            });
+            return btn;
+        }
+
+        function bindDragEvents(node) {
+            node.addEventListener("dragstart", (event) => {
+                state.drag = {
+                    type: node.dataset.dragType,
+                    id: node.dataset.id
+                };
+                node.classList.add("dragging");
+                event.dataTransfer.effectAllowed = "move";
+            });
+
+            node.addEventListener("dragend", () => {
+                state.drag = null;
+                node.classList.remove("dragging");
+                document.querySelectorAll(".drop-over").forEach((el) => el.classList.remove("drop-over"));
+            });
+        }
+
+        function bindDropZone(node) {
+            node.addEventListener("dragover", (event) => {
+                event.preventDefault();
+                node.classList.add("drop-over");
+            });
+
+            node.addEventListener("dragleave", () => node.classList.remove("drop-over"));
+            node.addEventListener("drop", (event) => {
+                event.preventDefault();
+                node.classList.remove("drop-over");
+                handleDrop(node);
+            });
+        }
+
+        function handleDrop(target) {
+            if (!state.drag) return;
+            const dragType = state.drag.type;
+            const dragId = state.drag.id;
+            const dropType = target.dataset.dropType;
+
+            pushUndo(`drop:${dragType}->${dropType}`);
+
+            if (dragType === "category" && target.dataset.dropType === "category-target" && target.dataset.groupId !== "none") {
+                reorderCategory(dragId, target.dataset.groupId);
+                setStatus("Category reordered");
+                render();
+                return;
+            }
+
+            if (dragType === "planned") {
+                const planned = state.planned.find((x) => x.id === dragId);
+                if (!planned) return;
+
+                if (dropType === "planned-group" || dropType === "category-target") {
+                    planned.categoryId = target.dataset.groupId === "none" ? null : target.dataset.groupId;
+                    setStatus("Planned item moved to category");
+                }
+
+                if (dropType === "planned") {
+                    reorderInList(state.planned, dragId, target.dataset.id);
+                    setStatus("Planned item reordered");
+                }
+
+                render();
+                return;
+            }
+
+            if (dragType === "actual") {
+                const actual = state.actual.find((x) => x.id === dragId);
+                if (!actual) return;
+
+                if (dropType === "planned") {
+                    actual.plannedId = target.dataset.id;
+                    const planned = state.planned.find((x) => x.id === target.dataset.id);
+                    actual.categoryId = planned ? planned.categoryId : null;
+                    setStatus("Actual paired to planned step");
+                } else if (dropType === "actual-group" || dropType === "category-target") {
+                    actual.plannedId = null;
+                    actual.categoryId = target.dataset.groupId === "none" ? null : target.dataset.groupId;
+                    setStatus("Actual moved to category");
+                } else if (dropType === "actual") {
+                    reorderInList(state.actual, dragId, target.dataset.id);
+                    setStatus("Actual item reordered");
+                }
+
+                render();
+            }
+        }
+
+        function reorderInList(list, dragId, targetId) {
+            if (dragId === targetId) return;
+            const dragIdx = list.findIndex((x) => x.id === dragId);
+            const targetIdx = list.findIndex((x) => x.id === targetId);
+            if (dragIdx < 0 || targetIdx < 0) return;
+            const [moved] = list.splice(dragIdx, 1);
+            list.splice(targetIdx, 0, moved);
+        }
+
+        function reorderCategory(dragId, targetId) {
+            if (dragId === targetId) return;
+            const dragIdx = state.categories.findIndex((x) => x.id === dragId);
+            const targetIdx = state.categories.findIndex((x) => x.id === targetId);
+            if (dragIdx < 0 || targetIdx < 0) return;
+            const [moved] = state.categories.splice(dragIdx, 1);
+            state.categories.splice(targetIdx, 0, moved);
+        }
+
+        function handleGlobalDelete(event) {
+            if (event.key !== "Delete") return;
+            if (!state.selectedItemId) return;
+
+            const plannedHit = state.planned.find((x) => x.id === state.selectedItemId);
+            if (plannedHit) {
+                pushUndo("delete:planned");
+                state.actual.forEach((item) => {
+                    if (item.plannedId === plannedHit.id) item.plannedId = null;
+                });
+                state.planned = state.planned.filter((x) => x.id !== plannedHit.id);
+                setStatus("Planned item deleted");
+                render();
+                return;
+            }
+
+            const actualHit = state.actual.find((x) => x.id === state.selectedItemId);
+            if (actualHit) {
+                pushUndo("delete:actual");
+                state.actual = state.actual.filter((x) => x.id !== actualHit.id);
+                setStatus("Actual item deleted");
+                render();
+                return;
+            }
+        }
+
+        function inlineEditItem(kind, id) {
+            const list = kind === "planned" ? state.planned : state.actual;
+            const item = list.find((x) => x.id === id);
+            if (!item) return;
+
+            const editor = document.createElement("div");
+            editor.className = "editor-box open";
+
+            const area = document.createElement("textarea");
+            area.value = stepTextOnly(item.text);
+
+            const saveBtn = document.createElement("button");
+            saveBtn.className = "slim";
+            saveBtn.textContent = "Save";
+
+            const cancelBtn = document.createElement("button");
+            cancelBtn.className = "slim";
+            cancelBtn.textContent = "Cancel";
+
+            const actions = document.createElement("div");
+            actions.className = "item-actions";
+            actions.appendChild(saveBtn);
+            actions.appendChild(cancelBtn);
+
+            editor.appendChild(area);
+            editor.appendChild(actions);
+
+            const currentNode = document.querySelector(`.item[data-id='${id}'][data-kind='${kind}']`);
+            if (!currentNode || !currentNode.parentNode) return;
+            currentNode.parentNode.replaceChild(editor, currentNode);
+            area.focus();
+
+            saveBtn.addEventListener("click", () => {
+                const normalized = normalizeStepLine(area.value);
+                if (!normalized) {
+                    render();
+                    return;
+                }
+                pushUndo(`edit:${kind}`);
+                item.text = normalized;
+                setStatus(`${kind} item updated`);
+                render();
+            });
+
+            cancelBtn.addEventListener("click", () => {
+                render();
+            });
+
+            area.addEventListener("keydown", (event) => {
+                if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                    saveBtn.click();
+                }
+                if (event.key === "Escape") {
+                    render();
+                }
+            });
+        }
+
+        function inlineEditCategory(id) {
+            const item = state.categories.find((x) => x.id === id);
+            if (!item) return;
+            const next = prompt("Rename category", item.name);
+            if (next === null) return;
+            const cleaned = next.trim();
+            if (!cleaned) return;
+            pushUndo("edit:category");
+            item.name = cleaned;
+            setStatus("Category renamed");
+            render();
+        }
+
+        function acceptPending(kind, id) {
+            pushUndo(`accept:${kind}`);
+            if (kind === "category") {
+                const target = state.categories.find((x) => x.id === id);
+                if (target) target.pending = false;
+            }
+            if (kind === "planned") {
+                const target = state.planned.find((x) => x.id === id);
+                if (target) target.pending = false;
+            }
+            if (kind === "actual") {
+                const target = state.actual.find((x) => x.id === id);
+                if (target) target.pending = false;
+            }
+            setStatus("Pending item accepted");
+            render();
+        }
+
+        function rejectPending(kind, id) {
+            pushUndo(`reject:${kind}`);
+            if (kind === "category") {
+                const target = state.categories.find((x) => x.id === id);
+                if (!target) return;
+                state.planned.forEach((item) => {
+                    if (item.categoryId === target.id) item.categoryId = null;
+                });
+                state.actual.forEach((item) => {
+                    if (item.categoryId === target.id) item.categoryId = null;
+                });
+                state.categories = state.categories.filter((x) => x.id !== target.id);
+                setStatus("Category rejected and moved items to No Category");
+                render();
+                return;
+            }
+
+            const list = kind === "planned" ? state.planned : state.actual;
+            const target = list.find((x) => x.id === id);
+            if (!target) return;
+            target.pending = false;
+            target.categoryId = null;
+            if (kind === "actual") target.plannedId = null;
+            setStatus("Pending item rejected to No Category");
+            render();
+        }
+
+        function savePending() {
+            pushUndo("save-pending");
+            state.categories.forEach((x) => { x.pending = false; });
+            state.planned.forEach((x) => { x.pending = false; });
+            state.actual.forEach((x) => { x.pending = false; });
+            setStatus("All pending marks accepted");
+            render();
+        }
+
+        function retryLastAi() {
+            if (!state.lastAiAction) {
+                setStatus("Nothing to retry yet");
+                return;
+            }
+            undoAction(true);
+            if (state.lastAiAction === "suggest") suggestCategories(true);
+            if (state.lastAiAction === "categorize") categorizePlanned(true);
+            if (state.lastAiAction === "pair") pairActual(true);
+        }
+
+        function suggestCategories(isRetry = false) {
+            pushUndo("ai:suggest");
+            state.aiVariant += 1;
+            const plannedWords = state.planned.map((item) => stepTextOnly(item.text)).join(" ").toLowerCase();
+
+            const suggestions = [];
+            if (/ui|layout|panel|column/.test(plannedWords)) suggestions.push(`UI ${state.aiVariant}`);
+            if (/drag|drop|move|pair/.test(plannedWords)) suggestions.push(`Interaction ${state.aiVariant}`);
+            if (/export|markdown|report/.test(plannedWords)) suggestions.push(`Output ${state.aiVariant}`);
+            if (!suggestions.length) suggestions.push(`Suggested ${state.aiVariant}`);
+
+            suggestions.forEach((name) => {
+                if (!state.categories.some((x) => x.name === name)) {
+                    addCategory(name, { pending: true });
+                }
+            });
+
+            state.lastAiAction = "suggest";
+            setStatus(isRetry ? "Retry generated fresh suggestions" : "AI suggested categories (pending)");
+            render();
+        }
+
+        function categorizePlanned(isRetry = false) {
+            if (!state.categories.length) {
+                setStatus("Create or suggest categories first");
+                return;
+            }
+
+            pushUndo("ai:categorize");
+            state.aiVariant += 1;
+
+            state.planned.forEach((item, idx) => {
+                const text = stepTextOnly(item.text).toLowerCase();
+                let category = state.categories[idx % state.categories.length];
+                for (const cat of state.categories) {
+                    if (text.includes(cat.name.toLowerCase().split(" ")[0])) {
+                        category = cat;
+                        break;
+                    }
+                }
+                item.categoryId = category.id;
+                item.pending = true;
+            });
+
+            state.lastAiAction = "categorize";
+            setStatus(isRetry ? "Retry recategorized planned items" : "AI categorized planned items (pending)");
+            render();
+        }
+
+        function pairActual(isRetry = false) {
+            pushUndo("ai:pair");
+            state.aiVariant += 1;
+
+            const plannedPool = state.planned.slice();
+            state.actual.forEach((actual, idx) => {
+                const actualWords = new Set(stepTextOnly(actual.text).toLowerCase().split(/\W+/).filter(Boolean));
+                let best = null;
+                let bestScore = -1;
+
+                plannedPool.forEach((planned) => {
+                    const plannedWords = stepTextOnly(planned.text).toLowerCase().split(/\W+/).filter(Boolean);
+                    let overlap = 0;
+                    plannedWords.forEach((w) => {
+                        if (actualWords.has(w)) overlap += 1;
+                    });
+                    if (overlap > bestScore) {
+                        bestScore = overlap;
+                        best = planned;
+                    }
+                });
+
+                if (best && bestScore > 0) {
+                    actual.plannedId = best.id;
+                    actual.categoryId = best.categoryId;
+                } else if (state.categories.length) {
+                    const fallback = state.categories[idx % state.categories.length];
+                    actual.plannedId = null;
+                    actual.categoryId = fallback.id;
+                } else {
+                    actual.plannedId = null;
+                    actual.categoryId = null;
+                }
+                actual.pending = true;
+            });
+
+            state.lastAiAction = "pair";
+            setStatus(isRetry ? "Retry re-paired actual items" : "AI paired actual items (pending)");
+            render();
+        }
+
+        function resetAssignments() {
+            pushUndo("reset");
+            state.planned.forEach((item) => {
+                item.categoryId = null;
+                item.pending = false;
+            });
+            state.actual.forEach((item) => {
+                item.categoryId = null;
+                item.plannedId = null;
+                item.pending = false;
+            });
+            state.categories.forEach((item) => {
+                item.pending = false;
+            });
+            setStatus("Reset complete. Steps kept, assignments cleared");
+            render();
+        }
+
+        function clearAll() {
+            pushUndo("clear");
+            state.categories = [];
+            state.planned = [];
+            state.actual = [];
+            state.lastAiAction = null;
+            setStatus("Cleared all content");
+            render();
+        }
+
+        function undoAction(isInternal = false) {
+            const snapshot = state.undo.pop();
+            if (!snapshot) {
+                if (!isInternal) setStatus("Nothing to undo");
+                return;
+            }
+
+            state.redo.push({
+                categories: deepClone(state.categories),
+                planned: deepClone(state.planned),
+                actual: deepClone(state.actual),
+                aiVariant: state.aiVariant,
+                lastAiAction: state.lastAiAction
+            });
+
+            restoreSnapshot(snapshot);
+            if (!isInternal) setStatus(`Undo: ${snapshot.reason}`);
+            render();
+        }
+
+        function redoAction() {
+            const snapshot = state.redo.pop();
+            if (!snapshot) {
+                setStatus("Nothing to redo");
+                return;
+            }
+
+            state.undo.push({
+                reason: "redo-state",
+                categories: deepClone(state.categories),
+                planned: deepClone(state.planned),
+                actual: deepClone(state.actual),
+                aiVariant: state.aiVariant,
+                lastAiAction: state.lastAiAction
+            });
+
+            restoreSnapshot(snapshot);
+            setStatus("Redo complete");
+            render();
+        }
+
+        function openExport() {
+            ids.exportText.textContent = buildExport();
+            ids.exportModal.classList.add("open");
+            setStatus("Export generated");
+        }
+
+        function buildExport() {
+            const lines = [];
+            const groups = normalizeBuckets();
+            groups.forEach((group) => {
+                lines.push(`- ${group.name}`);
+                const plannedItems = state.planned.filter((x) => (x.categoryId || "none") === group.id);
+                plannedItems.forEach((planned) => {
+                    lines.push(`-- ${stepTextOnly(planned.text)}`);
+                    const paired = state.actual.filter((a) => a.plannedId === planned.id);
+                    paired.forEach((actual) => {
+                        lines.push(`--- ${stepTextOnly(actual.text)}`);
+                    });
+                });
+
+                const looseActual = state.actual.filter((a) => !a.plannedId && (a.categoryId || "none") === group.id);
+                looseActual.forEach((actual) => {
+                    lines.push(`-- [actual] ${stepTextOnly(actual.text)}`);
+                });
+            });
+
+            return lines.join("\n");
+        }
+
+        async function copyExport() {
+            try {
+                await navigator.clipboard.writeText(ids.exportText.textContent);
+                setStatus("Export copied to clipboard");
+            } catch (_) {
+                setStatus("Clipboard unavailable in this browser context");
+            }
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aiDash - StepConsolidator v0.9</title>
+    <style>
+        :root {
+            --bg: #05080d;
+            --panel: #101923;
+            --card: #152231;
+            --line: #2c3e53;
+            --text: #d8e6f5;
+            --muted: #8ea1b7;
+            --accent: #44e2a3;
+            --accent-2: #55b4ff;
+            --warn: #ffb252;
+            --danger: #ff6f6f;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 5% 10%, rgba(68, 226, 163, 0.16), transparent 35%),
+                radial-gradient(circle at 95% 15%, rgba(85, 180, 255, 0.12), transparent 32%),
+                linear-gradient(140deg, #06090f 0%, #0b131d 100%);
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            min-height: 100vh;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 240px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            border-right: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(16, 25, 35, 0.98) 0%, rgba(10, 15, 22, 0.98) 100%);
+            padding: 18px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .brand {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            border: 1px solid rgba(68, 226, 163, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .side-btn {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #1a2735;
+            color: var(--text);
+            padding: 10px;
+            cursor: pointer;
+            text-align: left;
+            font-weight: 600;
+            transition: 0.18s ease;
+        }
+
+        .side-btn:hover {
+            border-color: var(--accent-2);
+            background: #243448;
+            transform: translateX(2px);
+        }
+
+        .side-btn.danger {
+            border-color: rgba(255, 111, 111, 0.45);
+            color: #ffd0d0;
+        }
+
+        .hint {
+            margin-top: auto;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.4;
+            border-top: 1px solid var(--line);
+            padding-top: 10px;
+        }
+
+        .board-wrap {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .topbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: rgba(16, 25, 35, 0.9);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+
+        .topbar .meta {
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .message {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px dashed var(--line);
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .col {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: rgba(16, 25, 35, 0.88);
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .col-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--line);
+            padding: 10px;
+            gap: 8px;
+        }
+
+        .col-title {
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .col-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            border: 1px solid var(--line);
+            background: #213044;
+            color: var(--text);
+            border-radius: 6px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 0.86rem;
+        }
+
+        .editor-box {
+            display: none;
+            gap: 6px;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .editor-box.active {
+            display: grid;
+        }
+
+        .editor-box textarea {
+            width: 100%;
+            min-height: 88px;
+            resize: vertical;
+            background: #0e1620;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 8px;
+            font-size: 0.88rem;
+        }
+
+        .editor-box button {
+            justify-self: end;
+            border: 1px solid var(--accent);
+            background: rgba(68, 226, 163, 0.12);
+            color: var(--accent);
+            border-radius: 7px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .col-body {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow: auto;
+        }
+
+        .group {
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: rgba(10, 16, 24, 0.85);
+            padding: 10px;
+        }
+
+        .group-title {
+            margin: 0;
+            padding: 8px;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            color: var(--accent-2);
+            font-size: 0.92rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: rgba(85, 180, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .group-title[draggable="true"] {
+            cursor: grab;
+        }
+
+        .group-sub {
+            color: var(--muted);
+            margin: 6px 0 0;
+            font-size: 0.8rem;
+        }
+
+        .dropzone {
+            min-height: 42px;
+            border: 1px dashed rgba(142, 161, 183, 0.35);
+            border-radius: 8px;
+            margin-top: 8px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .dropzone.over {
+            border-color: var(--accent);
+            background: rgba(68, 226, 163, 0.08);
+        }
+
+        .item {
+            background: #1d2d40;
+            border: 1px solid #334d67;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .item.pending {
+            border-color: var(--warn);
+            background: rgba(255, 178, 82, 0.16);
+        }
+
+        .item.selected {
+            box-shadow: 0 0 0 2px var(--accent-2);
+        }
+
+        .item-main {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            min-width: 0;
+        }
+
+        .qmark {
+            color: var(--warn);
+            font-weight: 700;
+            flex-shrink: 0;
+            display: none;
+        }
+
+        .item.pending .qmark {
+            display: inline;
+        }
+
+        .item-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .item-tools {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .mini {
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            background: #263649;
+            color: #cde7ff;
+            padding: 2px 6px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .item.pending .mini {
+            display: inline-block;
+        }
+
+        .paired-tag {
+            color: var(--muted);
+            font-size: 0.75rem;
+            padding-left: 4px;
+        }
+
+        .inline-editor {
+            width: 100%;
+            border: 1px solid var(--accent-2);
+            border-radius: 6px;
+            background: #0f1924;
+            color: var(--text);
+            padding: 5px 6px;
+            font-size: 0.86rem;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.62);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-box {
+            width: min(840px, 96vw);
+            max-height: 86vh;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            background: #0f1823;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .modal-head,
+        .modal-foot {
+            padding: 10px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-foot {
+            border-bottom: none;
+            border-top: 1px solid var(--line);
+        }
+
+        #exportText {
+            margin: 0;
+            padding: 14px;
+            font-family: Consolas, "Courier New", monospace;
+            white-space: pre-wrap;
+            overflow: auto;
+            color: #dbe7f2;
+            background: #0b121b;
+        }
+
+        @media (max-width: 1080px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                display: grid;
+                grid-template-columns: repeat(4, minmax(110px, 1fr));
+                gap: 8px;
+            }
+
+            .brand,
+            .hint {
+                grid-column: 1 / -1;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .col {
+                min-height: 40vh;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand">StepConsolidator</div>
+        <button class="side-btn" data-action="suggest">Suggest</button>
+        <button class="side-btn" data-action="categorize">Categorize</button>
+        <button class="side-btn" data-action="pair">Pair</button>
+        <button class="side-btn" data-action="undo">Undo</button>
+        <button class="side-btn" data-action="redo">Redo</button>
+        <button class="side-btn" data-action="reset">Reset</button>
+        <button class="side-btn danger" data-action="clear">Clear</button>
+        <button class="side-btn" data-action="export">Export</button>
+        <div class="hint">
+            Unsorted items are in No Category. Double-click any item to edit. Use Delete to remove selected item or category.
+        </div>
+    </aside>
+
+    <main class="board-wrap">
+        <div class="topbar">
+            <strong>Category | Planned | Actual</strong>
+            <span class="meta">Issue #1 • Project 6 (aiDash manage)</span>
+        </div>
+        <div id="message" class="message">Ready. Add categories, planned items, and actual items via the pencil icons.</div>
+
+        <div class="grid">
+            <section class="col">
+                <div class="col-head">
+                    <span class="col-title">Category</span>
+                    <div class="col-actions">
+                        <button class="icon-btn" data-open-editor="category" title="Edit">✏️</button>
+                        <button class="icon-btn" data-clear-column="category" title="Clear">X</button>
+                    </div>
+                </div>
+                <div class="editor-box" data-editor="category">
+                    <textarea placeholder="One category per line"></textarea>
+                    <button data-save-editor="category">Save</button>
+                </div>
+                <div id="categoryBody" class="col-body"></div>
+            </section>
+
+            <section class="col">
+                <div class="col-head">
+                    <span class="col-title">Planned</span>
+                    <div class="col-actions">
+                        <button class="icon-btn" data-open-editor="planned" title="Edit">✏️</button>
+                        <button class="icon-btn" data-clear-column="planned" title="Clear">X</button>
+                    </div>
+                </div>
+                <div class="editor-box" data-editor="planned">
+                    <textarea placeholder="One planned item per line"></textarea>
+                    <button data-save-editor="planned">Save</button>
+                </div>
+                <div id="plannedBody" class="col-body"></div>
+            </section>
+
+            <section class="col">
+                <div class="col-head">
+                    <span class="col-title">Actual</span>
+                    <div class="col-actions">
+                        <button class="icon-btn" data-open-editor="actual" title="Edit">✏️</button>
+                        <button class="icon-btn" data-clear-column="actual" title="Clear">X</button>
+                    </div>
+                </div>
+                <div class="editor-box" data-editor="actual">
+                    <textarea placeholder="One actual item per line"></textarea>
+                    <button data-save-editor="actual">Save</button>
+                </div>
+                <div id="actualBody" class="col-body"></div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<div id="exportModal" class="modal" aria-hidden="true">
+    <div class="modal-box">
+        <div class="modal-head">
+            <strong>Export Markdown</strong>
+            <button class="icon-btn" id="closeExport">Close</button>
+        </div>
+        <pre id="exportText"></pre>
+        <div class="modal-foot">
+            <span class="meta">Hierarchy: Category > Planned > Actual</span>
+            <button class="icon-btn" id="copyExport">Copy to Clipboard</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const state = {
+        categories: [],
+        planned: [],
+        actual: [],
+        history: [],
+        future: []
+    };
+
+    let seq = 0;
+    let selected = { type: null, id: null };
+    let openEditor = null;
+
+    const byId = (id) => document.getElementById(id);
+    const msgEl = byId("message");
+    const categoryBody = byId("categoryBody");
+    const plannedBody = byId("plannedBody");
+    const actualBody = byId("actualBody");
+    const exportModal = byId("exportModal");
+    const exportText = byId("exportText");
+
+    const noCategory = { id: null, name: "No Category" };
+
+    const nextId = (prefix) => `${prefix}-${++seq}`;
+
+    const normalizeLine = (line) => {
+        const v = line.trim();
+        if (!v) return "";
+        if (/^-\s*\[[ xX]?\]\s*/.test(v)) {
+            return v.replace(/^-\s*\[[ xX]?\]\s*/, "").trim();
+        }
+        if (/^-\s+/.test(v)) {
+            return v.replace(/^-\s+/, "").trim();
+        }
+        return v;
+    };
+
+    const stepLabel = (text) => `- [ ] ${text}`;
+
+    const snapshot = () => JSON.stringify({
+        categories: state.categories,
+        planned: state.planned,
+        actual: state.actual
+    });
+
+    const restore = (snap) => {
+        const data = JSON.parse(snap);
+        state.categories = data.categories;
+        state.planned = data.planned;
+        state.actual = data.actual;
+        selected = { type: null, id: null };
+        render();
+    };
+
+    const pushHistory = () => {
+        state.history.push(snapshot());
+        if (state.history.length > 60) state.history.shift();
+        state.future = [];
+    };
+
+    const setMessage = (text) => {
+        msgEl.textContent = text;
+    };
+
+    const groups = () => [noCategory, ...state.categories];
+
+    const listByCategory = (arr, field, categoryId) =>
+        arr.filter((x) => (x[field] || null) === categoryId);
+
+    function render() {
+        renderCategoriesColumn();
+        renderPlannedColumn();
+        renderActualColumn();
+        bindDnd();
+        bindSelection();
+    }
+
+    function renderGroupShell(group, kind) {
+        const wrapper = document.createElement("section");
+        wrapper.className = "group";
+        wrapper.dataset.group = group.id === null ? "none" : group.id;
+
+        const title = document.createElement("h3");
+        title.className = "group-title";
+        title.textContent = group.name;
+
+        if (kind === "category") {
+            if (group.id !== null) {
+                title.draggable = true;
+                title.dataset.dragType = "category";
+                title.dataset.categoryId = group.id;
+                title.title = "Drag to reorder categories";
+            }
+
+            if (group.id !== null) {
+                const right = document.createElement("span");
+                right.className = "paired-tag";
+                right.textContent = "double-click to rename";
+                title.appendChild(right);
+            }
+        }
+
+        wrapper.appendChild(title);
+        return wrapper;
+    }
+
+    function createDropzone(type, categoryId, plannedId = null) {
+        const zone = document.createElement("div");
+        zone.className = "dropzone";
+        zone.dataset.zoneType = type;
+        zone.dataset.categoryId = categoryId === null ? "none" : categoryId;
+        if (plannedId) zone.dataset.plannedId = plannedId;
+        return zone;
+    }
+
+    function renderItem(item, type) {
+        const div = document.createElement("div");
+        div.className = `item${item.pending ? " pending" : ""}`;
+        if (selected.type === type && selected.id === item.id) {
+            div.classList.add("selected");
+        }
+        div.tabIndex = 0;
+        div.draggable = true;
+        div.dataset.dragType = type;
+        div.dataset.id = item.id;
+
+        const left = document.createElement("div");
+        left.className = "item-main";
+
+        const qm = document.createElement("span");
+        qm.className = "qmark";
+        qm.textContent = "?";
+
+        const txt = document.createElement("span");
+        txt.className = "item-text";
+        txt.textContent = stepLabel(item.text);
+
+        left.appendChild(qm);
+        left.appendChild(txt);
+
+        const tools = document.createElement("div");
+        tools.className = "item-tools";
+
+        const ok = document.createElement("button");
+        ok.className = "mini";
+        ok.textContent = "\u2713";
+        ok.title = "Accept";
+        ok.addEventListener("click", (e) => {
+            e.stopPropagation();
+            item.pending = false;
+            setMessage("Item accepted.");
+            render();
+        });
+
+        const rej = document.createElement("button");
+        rej.className = "mini";
+        rej.textContent = "\u2717";
+        rej.title = "Reject to No Category";
+        rej.addEventListener("click", (e) => {
+            e.stopPropagation();
+            pushHistory();
+            rejectItem(type, item.id);
+            render();
+            setMessage("Item rejected and moved to No Category.");
+        });
+
+        tools.appendChild(ok);
+        tools.appendChild(rej);
+
+        div.appendChild(left);
+        div.appendChild(tools);
+
+        div.addEventListener("click", () => {
+            selected = { type, id: item.id };
+            render();
+        });
+
+        div.addEventListener("dblclick", () => beginInlineEdit(div, item, type));
+
+        return div;
+    }
+
+    function beginInlineEdit(container, item, type) {
+        const input = document.createElement("input");
+        input.className = "inline-editor";
+        input.value = item.text;
+        container.replaceChildren(input);
+        input.focus();
+        input.select();
+
+        const save = () => {
+            const updated = normalizeLine(input.value);
+            if (updated) {
+                pushHistory();
+                item.text = updated;
+                if (type === "category") {
+                    setMessage("Category renamed.");
+                } else {
+                    setMessage("Step text updated.");
+                }
+            }
+            render();
+        };
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") save();
+            if (e.key === "Escape") render();
+        });
+
+        input.addEventListener("blur", save, { once: true });
+    }
+
+    function renderCategoriesColumn() {
+        categoryBody.innerHTML = "";
+
+        const noCat = renderGroupShell(noCategory, "category");
+        const noZone = createDropzone("category-holder", null);
+        noZone.appendChild(document.createTextNode("Drop category items here to remove category association."));
+        noCat.appendChild(noZone);
+        noCat.querySelector(".group-title").addEventListener("dblclick", () => {
+            setMessage("No Category cannot be renamed.");
+        });
+        categoryBody.appendChild(noCat);
+
+        state.categories.forEach((cat) => {
+            const shell = renderGroupShell(cat, "category");
+            const zone = createDropzone("category-holder", cat.id);
+            zone.appendChild(document.createTextNode("Drop category card headers to reorder."));
+            shell.appendChild(zone);
+            shell.querySelector(".group-title").addEventListener("dblclick", (e) => {
+                e.stopPropagation();
+                beginInlineEdit(shell.querySelector(".group-title"), cat, "category");
+            });
+            categoryBody.appendChild(shell);
+        });
+    }
+
+    function renderPlannedColumn() {
+        plannedBody.innerHTML = "";
+        groups().forEach((group) => {
+            const shell = renderGroupShell(group, "planned");
+            const zone = createDropzone("planned-group", group.id);
+            listByCategory(state.planned, "categoryId", group.id).forEach((p) => {
+                const node = renderItem(p, "planned");
+                node.dataset.categoryId = group.id === null ? "none" : group.id;
+                zone.appendChild(node);
+
+                const pairedActuals = state.actual.filter((a) => a.pairedPlannedId === p.id);
+                if (pairedActuals.length) {
+                    const pairedNote = document.createElement("div");
+                    pairedNote.className = "paired-tag";
+                    pairedNote.textContent = `${pairedActuals.length} actual paired`;
+                    zone.appendChild(pairedNote);
+                }
+            });
+            shell.appendChild(zone);
+            plannedBody.appendChild(shell);
+        });
+    }
+
+    function renderActualColumn() {
+        actualBody.innerHTML = "";
+        groups().forEach((group) => {
+            const shell = renderGroupShell(group, "actual");
+            const zone = createDropzone("actual-group", group.id);
+
+            const unpaired = state.actual.filter((a) => (a.categoryId || null) === group.id && !a.pairedPlannedId);
+            unpaired.forEach((a) => {
+                const node = renderItem(a, "actual");
+                node.dataset.categoryId = group.id === null ? "none" : group.id;
+                zone.appendChild(node);
+            });
+
+            const plannedInGroup = listByCategory(state.planned, "categoryId", group.id);
+            plannedInGroup.forEach((p) => {
+                const stack = state.actual.filter((a) => a.pairedPlannedId === p.id);
+                if (!stack.length) return;
+
+                const line = document.createElement("div");
+                line.className = "group-sub";
+                line.textContent = `Paired with: ${stepLabel(p.text)}`;
+                zone.appendChild(line);
+
+                stack.forEach((a) => {
+                    const node = renderItem(a, "actual");
+                    node.dataset.plannedAnchor = p.id;
+                    zone.appendChild(node);
+                });
+            });
+
+            shell.appendChild(zone);
+            actualBody.appendChild(shell);
+        });
+    }
+
+    function bindSelection() {
+        document.addEventListener("keydown", (e) => {
+            if (e.key !== "Delete") return;
+            if (!selected.type || !selected.id) return;
+
+            pushHistory();
+            if (selected.type === "planned") {
+                removePlanned(selected.id);
+                setMessage("Planned item deleted.");
+            } else if (selected.type === "actual") {
+                removeActual(selected.id);
+                setMessage("Actual item deleted.");
+            } else if (selected.type === "category") {
+                removeCategory(selected.id);
+                setMessage("Category deleted and items moved to No Category.");
+            }
+            selected = { type: null, id: null };
+            render();
+        }, { once: true });
+    }
+
+    function bindDnd() {
+        const allDraggables = document.querySelectorAll("[draggable='true']");
+        allDraggables.forEach((el) => {
+            el.addEventListener("dragstart", (e) => {
+                const payload = {
+                    type: el.dataset.dragType,
+                    id: el.dataset.id || "",
+                    categoryId: el.dataset.categoryId || el.dataset.categoryId || ""
+                };
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "") payload.categoryId = "none";
+                if (el.dataset.categoryId === undefined && el.dataset.categoryId !== "") {
+                    if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                }
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+                if (el.dataset.categoryId === undefined && el.dataset.categoryId !== "") {
+                    if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                }
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+                if (el.dataset.categoryId === undefined && el.dataset.categoryId !== "") {
+                    if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                }
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                if (el.dataset.categoryId) payload.categoryId = el.dataset.categoryId;
+                if (el.dataset.categoryId === "none") payload.categoryId = "none";
+
+                e.dataTransfer.setData("text/plain", JSON.stringify(payload));
+            });
+        });
+
+        const zones = document.querySelectorAll(".dropzone");
+        zones.forEach((zone) => {
+            zone.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                zone.classList.add("over");
+            });
+            zone.addEventListener("dragleave", () => zone.classList.remove("over"));
+            zone.addEventListener("drop", (e) => {
+                e.preventDefault();
+                zone.classList.remove("over");
+                const payload = JSON.parse(e.dataTransfer.getData("text/plain") || "{}");
+                if (!payload.type) return;
+
+                pushHistory();
+
+                const targetCategory = zone.dataset.categoryId === "none" ? null : zone.dataset.categoryId;
+
+                if (payload.type === "planned") {
+                    const p = state.planned.find((x) => x.id === payload.id);
+                    if (!p) return;
+                    p.categoryId = targetCategory;
+                    setMessage("Planned step moved.");
+                }
+
+                if (payload.type === "actual") {
+                    const a = state.actual.find((x) => x.id === payload.id);
+                    if (!a) return;
+
+                    if (zone.dataset.zoneType === "actual-group") {
+                        a.pairedPlannedId = null;
+                        a.categoryId = targetCategory;
+                        setMessage("Actual step moved to category.");
+                    }
+
+                    if (zone.dataset.zoneType === "planned-group") {
+                        const plannedTarget = nearestPlannedInCategory(targetCategory);
+                        if (plannedTarget) {
+                            a.pairedPlannedId = plannedTarget.id;
+                            a.categoryId = plannedTarget.categoryId || null;
+                            setMessage("Actual paired to a planned step.");
+                        } else {
+                            a.pairedPlannedId = null;
+                            a.categoryId = targetCategory;
+                            setMessage("No planned target in this group. Actual placed under category.");
+                        }
+                    }
+
+                    if (zone.dataset.zoneType === "planned-item" && zone.dataset.plannedId) {
+                        a.pairedPlannedId = zone.dataset.plannedId;
+                        const plannedTarget = state.planned.find((x) => x.id === zone.dataset.plannedId);
+                        a.categoryId = plannedTarget ? plannedTarget.categoryId : null;
+                        setMessage("Actual paired to selected planned step.");
+                    }
+                }
+
+                if (payload.type === "category") {
+                    if (targetCategory === null) {
+                        setMessage("Drop a category header on another category to reorder.");
+                    } else {
+                        reorderCategory(payload.id, targetCategory);
+                        setMessage("Category reordered.");
+                    }
+                }
+
+                render();
+            });
+        });
+
+        const plannedItems = document.querySelectorAll(".item[data-drag-type='planned']");
+        plannedItems.forEach((itemEl) => {
+            itemEl.addEventListener("dragover", (e) => e.preventDefault());
+            itemEl.addEventListener("drop", (e) => {
+                e.preventDefault();
+                const payload = JSON.parse(e.dataTransfer.getData("text/plain") || "{}");
+                if (payload.type !== "actual") return;
+
+                const plannedId = itemEl.dataset.id;
+                const target = state.actual.find((a) => a.id === payload.id);
+                const plannedTarget = state.planned.find((p) => p.id === plannedId);
+                if (!target || !plannedTarget) return;
+
+                pushHistory();
+                target.pairedPlannedId = plannedId;
+                target.categoryId = plannedTarget.categoryId || null;
+                setMessage("Actual paired by dropping onto planned item.");
+                render();
+            });
+        });
+    }
+
+    function nearestPlannedInCategory(categoryId) {
+        return state.planned.find((p) => (p.categoryId || null) === categoryId) || null;
+    }
+
+    function reorderCategory(movingId, targetId) {
+        const from = state.categories.findIndex((c) => c.id === movingId);
+        const to = state.categories.findIndex((c) => c.id === targetId);
+        if (from < 0 || to < 0 || from === to) return;
+        const [m] = state.categories.splice(from, 1);
+        state.categories.splice(to, 0, m);
+    }
+
+    function removeCategory(categoryId) {
+        state.categories = state.categories.filter((c) => c.id !== categoryId);
+        state.planned.forEach((p) => {
+            if ((p.categoryId || null) === categoryId) p.categoryId = null;
+        });
+        state.actual.forEach((a) => {
+            if ((a.categoryId || null) === categoryId) a.categoryId = null;
+        });
+    }
+
+    function removePlanned(plannedId) {
+        state.planned = state.planned.filter((p) => p.id !== plannedId);
+        state.actual.forEach((a) => {
+            if (a.pairedPlannedId === plannedId) a.pairedPlannedId = null;
+        });
+    }
+
+    function removeActual(actualId) {
+        state.actual = state.actual.filter((a) => a.id !== actualId);
+    }
+
+    function rejectItem(type, id) {
+        if (type === "planned") {
+            const p = state.planned.find((x) => x.id === id);
+            if (!p) return;
+            p.pending = false;
+            p.categoryId = null;
+        }
+
+        if (type === "actual") {
+            const a = state.actual.find((x) => x.id === id);
+            if (!a) return;
+            a.pending = false;
+            a.categoryId = null;
+            a.pairedPlannedId = null;
+        }
+    }
+
+    function parseEditorLines(kind, rawText) {
+        const lines = rawText.split(/\r?\n/).map(normalizeLine).filter(Boolean);
+        if (!lines.length) return;
+
+        pushHistory();
+
+        if (kind === "category") {
+            lines.forEach((line) => {
+                state.categories.push({ id: nextId("cat"), name: line });
+            });
+            setMessage(`Added ${lines.length} categories.`);
+        }
+
+        if (kind === "planned") {
+            lines.forEach((line) => {
+                state.planned.push({
+                    id: nextId("plan"),
+                    text: line,
+                    categoryId: null,
+                    pending: false
+                });
+            });
+            setMessage(`Added ${lines.length} planned steps.`);
+        }
+
+        if (kind === "actual") {
+            lines.forEach((line) => {
+                state.actual.push({
+                    id: nextId("act"),
+                    text: line,
+                    categoryId: null,
+                    pairedPlannedId: null,
+                    pending: false
+                });
+            });
+            setMessage(`Added ${lines.length} actual steps.`);
+        }
+
+        render();
+    }
+
+    function setAllPending(items) {
+        items.forEach((x) => { x.pending = true; });
+    }
+
+    function tokenize(v) {
+        return v.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    }
+
+    function overlapScore(a, b) {
+        const ta = tokenize(a);
+        const tb = new Set(tokenize(b));
+        let score = 0;
+        ta.forEach((token) => {
+            if (tb.has(token)) score += 1;
+        });
+        return score;
+    }
+
+    function ensureAutoCategories() {
+        if (state.categories.length) return;
+
+        const pool = [
+            { key: /ui|layout|style|visual|panel|button/, name: "UI" },
+            { key: /spec|rules|format|validation|schema/, name: "Specs" },
+            { key: /list|entry|item|drag|drop|pair/, name: "List Flow" },
+            { key: /mock|yaml|steps|file|export/, name: "Data" }
+        ];
+
+        const found = new Set();
+        state.planned.forEach((p) => {
+            pool.forEach((entry) => {
+                if (entry.key.test(p.text.toLowerCase())) found.add(entry.name);
+            });
+        });
+
+        if (!found.size) found.add("General");
+
+        [...found].forEach((name) => {
+            state.categories.push({ id: nextId("cat"), name });
+        });
+    }
+
+    function categorizeAction() {
+        ensureAutoCategories();
+        state.planned.forEach((p) => {
+            let best = null;
+            let top = -1;
+            state.categories.forEach((c) => {
+                const sc = overlapScore(p.text, c.name);
+                if (sc > top) {
+                    top = sc;
+                    best = c;
+                }
+            });
+            p.categoryId = best ? best.id : null;
+            p.pending = true;
+        });
+    }
+
+    function pairAction() {
+        state.actual.forEach((a) => {
+            let best = null;
+            let top = 0;
+            state.planned.forEach((p) => {
+                const sc = overlapScore(a.text, p.text);
+                if (sc > top) {
+                    top = sc;
+                    best = p;
+                }
+            });
+
+            if (best && top > 0) {
+                a.pairedPlannedId = best.id;
+                a.categoryId = best.categoryId || null;
+            } else {
+                a.pairedPlannedId = null;
+                a.categoryId = null;
+            }
+            a.pending = true;
+        });
+    }
+
+    function resetBoard() {
+        state.planned.forEach((p) => {
+            p.categoryId = null;
+            p.pending = false;
+        });
+        state.actual.forEach((a) => {
+            a.categoryId = null;
+            a.pairedPlannedId = null;
+            a.pending = false;
+        });
+    }
+
+    function clearBoard() {
+        state.categories = [];
+        state.planned = [];
+        state.actual = [];
+        selected = { type: null, id: null };
+    }
+
+    function acceptAllPending() {
+        state.planned.forEach((p) => { p.pending = false; });
+        state.actual.forEach((a) => { a.pending = false; });
+    }
+
+    function toExportMarkdown() {
+        const lines = [];
+        groups().forEach((group) => {
+            lines.push(`- ${group.name}`);
+            const planned = listByCategory(state.planned, "categoryId", group.id);
+            planned.forEach((p) => {
+                lines.push(`-- ${stepLabel(p.text)}`);
+                const children = state.actual.filter((a) => a.pairedPlannedId === p.id);
+                children.forEach((a) => {
+                    lines.push(`--- ${stepLabel(a.text)}`);
+                });
+            });
+
+            const freeActual = state.actual.filter((a) => (a.categoryId || null) === group.id && !a.pairedPlannedId);
+            freeActual.forEach((a) => {
+                lines.push(`-- ${stepLabel(a.text)}`);
+            });
+        });
+        return lines.join("\n");
+    }
+
+    document.querySelectorAll("[data-open-editor]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const key = btn.dataset.openEditor;
+            document.querySelectorAll(".editor-box").forEach((box) => {
+                box.classList.toggle("active", box.dataset.editor === key && openEditor !== key);
+            });
+            openEditor = openEditor === key ? null : key;
+        });
+    });
+
+    document.querySelectorAll("[data-save-editor]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const key = btn.dataset.saveEditor;
+            const box = document.querySelector(`.editor-box[data-editor='${key}']`);
+            const ta = box.querySelector("textarea");
+            parseEditorLines(key, ta.value);
+            ta.value = "";
+            box.classList.remove("active");
+            openEditor = null;
+        });
+    });
+
+    document.querySelectorAll("[data-clear-column]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            pushHistory();
+            const key = btn.dataset.clearColumn;
+            if (key === "category") {
+                state.categories = [];
+                state.planned.forEach((p) => { p.categoryId = null; });
+                state.actual.forEach((a) => { a.categoryId = null; });
+                setMessage("Category column cleared. No Category remains.");
+            }
+            if (key === "planned") {
+                state.planned = [];
+                state.actual.forEach((a) => { a.pairedPlannedId = null; });
+                setMessage("Planned column cleared. Actual items kept.");
+            }
+            if (key === "actual") {
+                state.actual = [];
+                setMessage("Actual column cleared. Pairings removed.");
+            }
+            render();
+        });
+    });
+
+    document.querySelectorAll(".side-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const action = btn.dataset.action;
+
+            if (action === "undo") {
+                const prev = state.history.pop();
+                if (!prev) return setMessage("Nothing to undo.");
+                state.future.push(snapshot());
+                restore(prev);
+                return setMessage("Undo complete.");
+            }
+
+            if (action === "redo") {
+                const next = state.future.pop();
+                if (!next) return setMessage("Nothing to redo.");
+                state.history.push(snapshot());
+                restore(next);
+                return setMessage("Redo complete.");
+            }
+
+            pushHistory();
+
+            if (action === "suggest") {
+                ensureAutoCategories();
+                setAllPending(state.categories);
+                setMessage("Suggestions refreshed. Pending marks added.");
+            }
+
+            if (action === "categorize") {
+                categorizeAction();
+                setMessage("Categorize finished. Planned items marked pending.");
+            }
+
+            if (action === "pair") {
+                pairAction();
+                setMessage("Pair finished. Actual items marked pending.");
+            }
+
+            if (action === "reset") {
+                resetBoard();
+                setMessage("Reset complete. All steps returned to No Category.");
+            }
+
+            if (action === "clear") {
+                clearBoard();
+                setMessage("Board cleared.");
+            }
+
+            if (action === "export") {
+                exportText.textContent = toExportMarkdown();
+                exportModal.classList.add("show");
+                setMessage("Export window opened.");
+            }
+
+            render();
+        });
+    });
+
+    byId("closeExport").addEventListener("click", () => exportModal.classList.remove("show"));
+    byId("copyExport").addEventListener("click", async () => {
+        try {
+            await navigator.clipboard.writeText(exportText.textContent);
+            setMessage("Export copied to clipboard.");
+        } catch (e) {
+            setMessage("Clipboard access blocked by browser.");
+        }
+    });
+
+    exportModal.addEventListener("click", (e) => {
+        if (e.target === exportModal) exportModal.classList.remove("show");
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key.toLowerCase() === "s" && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            pushHistory();
+            acceptAllPending();
+            setMessage("All pending items accepted.");
+            render();
+        }
+    });
+
+    render();
+</script>
+</body>
+</html>
