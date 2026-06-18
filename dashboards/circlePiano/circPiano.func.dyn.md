@@ -14,7 +14,8 @@ Functionality:
 - Changing the scale key in settings changes the colors of the keys. 
 See `view` file. 
 
-2. Webpage App
+
+1. Webpage App
 
 2.1 Chord switch: 
 
@@ -38,7 +39,7 @@ See `view` file.
 
 -- i. For chord_mode: plays the chord. 
     - moves the hour hands. See `view`
-    - for guitar in midi mode: strums the notes at the setup strumming speed
+    - for guitar in midi mode: See strumming section below
 
 
 -- ii. For single note mode:  (chord mode: single note)
@@ -46,3 +47,12 @@ See `view` file.
   - minute hand points to previous note. (default 1200). 
   - seconds hand to the one before the previous chosen note. 
   - plays the note in the chosen instrument. 
+
+  2.2.4 - **Strumming:** 
+  a. Only when Midi output (even MSGS WT synth) is available. 
+  b. Only for chosen instrument `Guitar`
+  c. Simulate strumming with the bpm speed setting and according to the up-down strumming text in the settings page. 
+
+    - If needed, prepare a helper function, that emits the proper MIDI. 
+    - Do not stop the audio abruptly, on key release.
+  
