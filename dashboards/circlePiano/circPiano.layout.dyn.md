@@ -42,7 +42,11 @@
 
 # 2. Settings page
 
-1. Midi setup: KEEP SIMPLEST AS POSSIBLE  
+1. Midi setup: 
+
+- **Midi status:** colored dot + text (see View)
+- **Sound origin:** three radio buttons (see View)
+- **MIDI output:** [dropdown] — lists available MIDI outputs
 
 - 1.0 `Connected` indicator (green yellow red: connected, permissions, failed)
 - 1.1 Channel - constant: 1

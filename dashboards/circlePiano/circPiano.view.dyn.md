@@ -32,3 +32,21 @@ Note: In future versions we may allow the Dynamai Task to store the code and reu
 - Control buttons: 
 -- Active buttons: Metronome - default off. 
 -- For future. Inactive:  Record/Continue  Pause, Stop
+
+# Setup page
+ **Midi status dot:**
+  - 🟢 Green — MS GS Wavetable connected
+  - 🟡 Yellow — MIDI permission granted but no device found → Web Audio fallback
+  - 🔴 Red — MIDI blocked or unsupported → Web Audio fallback
+
+- **Sound output:**
+  - ( ) Microsoft GS Wavetable Synth  # list it as default even if not detected
+  - ( ) Browser Web Audio
+  - other outputs if detected. 
+
+1. On startup: attempt connection to Microsoft GS Wavetable Synth.
+2. If found → MIDI mode, green dot, enable instrument + strumming.
+3. If not found → Web Audio fallback, yellow/red dot, disable instrument + strumming.
+4. User switching to GS Wavetable radio button → retry MIDI connection.
+5. User switching to Web Audio radio button → drop to fallback immediately.
+6. Any MIDI send error mid-session → silently fall back to Web Audio, update dot.
