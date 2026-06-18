@@ -8,13 +8,20 @@
 
 2. **Keys:** One octave (D to C) wraps the full 360°, D at 12 o'clock.
    - 2.1 **White:** Wide ivory wedges, hairline seams between them. Note letter in bold dark brown near the outer rim, double the hour digit size.
-   - 2.2 **Black:** Shorter, narrower, darker, on top of white keys at the outer edge, stopping ~60% down.
-   - 2.3 **Gap:** No black key between E and F (around 2–3 o'clock).
+   - 2.2 **Black:** Narrower, darker, shorter, on top of white keys at the outer edge, stopping ~85% down.
+   - 2.3 **Gap:** No black key between E and F (around 2–3 o'clock), and not between B and C (around 9-10 o'clock).
+   - 2.4 **Octave circle**  draw a dotted circle halfway through keys. "Below it" in the inner part, the keys will play an octave lower. 
 
 3. **Background:** Near-black.
 
-4. **Middle clock and controls:** Hollow center doubled in size relative to the key ring, dark, with 12 tiny amber hour digits (0 replacing 12) and three clock hands.
-   - 4.1 **Center cap:** with tiny classic guitar icon:  Small circle in center, serves as toggle button for chord_mode on or off. Glowing darkish green for on. dark pink for single note mode (chord mode off).
+4. **Middle clock and controls:** Hollow center doubled in size relative to the key ring, dark, with 12 tiny amber hour digits (0 replacing 12) and three clock hands. 
+
+   - 4.1 **Clock hands:** The clock is not functional for showing time, only for indicating the notes and chords played. 
+     - Hour hand pointing to the hour of the currently selected note (default 12/0). 
+     - Minute hand pointing to the previous note played (default hour 1). 
+     - Seconds hand pointing to the note played before that. 
+     - In chord mode the minute and seconds hands point to the two other notes of the chord. 
+   - 4.1 **Center cap:** `chord_mode_button` - A circular classic-guitar icon-button toggles chord_mode on or off (to single note mode). Glowing darkish green for on. dark pink for off.
    - 4.2 **Chord text:** Left of the center cap — small dark box, chord name in subheading-size bold warm cream.
    - 4.3 **Buttons:** Right of center cap, three short thin buttons stacked:
      - [−] minor: deep red background, light text
@@ -24,11 +31,13 @@
 
 5. **Outer ridge:** Thin warm gold trim line at the outer edge.
 
-6. **Settings:** A settings cog icon button on the top right 
+6. **Settings:** A large settings cog icon button on the top right 
 
-7. **Control area:** Top left: 
-- Metronome icon button toggle on (default off)
-- Grayed out: Record/Pause/Continue, Stop. 
+7. **Control area:** Top left: 3 icon-buttons: 
+
+- Metronome icon. Toggles metronome on or off. 
+- Grayed out: Toggle: Record/Pause/Continue. Icon cycles through when pressed. Currently inactive. 
+- Stop recording icon. Currently does nothing. 
 
 
 # 2. Settings page
@@ -50,11 +59,13 @@
 -- () d-d-,dudu,  
 -- () custom: [ ]  
 
-1. Metronome
+3. Metronome
 3.1 Metronome sound: 3 choices: () tick, () drum, () beep
 3.2 Metronome bpm: default 110
 
-1. Scale
+4. Scale
 4.1 Scale key  tiny piano keyboard octave for scale choice
+  4.1.1 Current scale is purple.
 4.2 Scale type choice:  Major, Minor, Romanian
-Keyboard changes following Scale settings change. See `view` file
+4.3 Default (page start) scale: C Major
+4.4 Keyboard colors change, following any scale settings change. See the `view` instructions. 
