@@ -3,7 +3,7 @@
 
 Prepare a mock environment for creating and testing the steppair aidash. . 
 
-Specs are in /dev/docs/specs/steppair.specs.md
+Specs are in /dev/docs/specs/stepspair/steppair.specs.md
 .dyn.md files and dynamait is explained in /dev/docs/aitech/dynamait_explained.md
 
 # General:  
@@ -14,7 +14,7 @@ We are not working (yet) here with gh proj v2
 therefore we don't have the instructions.dyn.md file and the actions folder with its files installed.
 - See /dev/aitech folder with both explanation md files on specsDev and dynamait. 
 
-We are making an ai dashboard with a .dyn.md dynamai task instruction set according to /dev/docs/specs/steppair.specs.md. 
+We are making an ai dashboard with a .dyn.md dynamai task instruction set according to /dev/docs/specs/stepspair/steppair.specs.md. 
 
 The html and dyn.md (and if needed .ai.md) will be in /dashboards/steppair
 
