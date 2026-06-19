@@ -3,7 +3,7 @@
 
 
 # StepPair — Project Specification
-
+- [ ] 0. Read `steppair.readme.md` in `\docs\dev\specs\steppair\`
 ---
 
 ## Feature: steppair.dyn.md — DynamAI Instruction File

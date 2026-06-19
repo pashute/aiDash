@@ -1,6 +1,6 @@
 # aiDash - Dashboards for AI integration
 
-Version 1.4
+Version 1.4.1
 
 aiDash serves as an "AJAX" for AI to update parts without updating the whole data,
 and as a UI for the AI and user to interact with each other visually. 
@@ -8,7 +8,11 @@ and as a UI for the AI and user to interact with each other visually.
 - AI responses control UI elements. 
 
 The UI works with DOM manipulation through Fetch API, interacting with short AI changes, 
-limited to sections of the view. 
+limited to sections of the view.
+
+## Project Management
+
+**GitHub Project V2:** [aiDash manage](https://github.com/users/pashute/projects/6) 
 
 
 ## Examples:

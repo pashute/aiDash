@@ -1,0 +1,60 @@
+```yaml
+# Filename: projmng.yaml
+# Version: 1.0
+# Updated at: feature start, item open, commit/push, item close, feature end.
+
+# repo
+project:
+  owner:
+  repo:
+
+# project management (github project board)
+projman:
+  num:
+  name:
+  uid:
+  url:
+
+# feature (gitflow)
+feature:
+  name:
+  version: 1.0
+  branch:
+  item:
+    num:
+    title:
+    url:
+    state:
+    stage:
+    milestone: {number: , title: , due: }
+
+# active_item: current item being worked on.
+active_item:
+  num:
+  title:
+  url:
+  state:
+  stage:
+  milestone: {number: , title: , due: }
+  subtasks:
+
+# parent_item: immediate parent. empty if active_item is the feature item itself
+parent_item:
+  num:
+  title:
+  url:
+  state:
+  stage:
+  milestone: {number: , title: , due: }
+  steps_progress:
+
+# commits: log of all commits in this feature.
+commits:
+
+# completed_items: closed items in this feature.
+# each item has: num, title, status, remarks, has_open_subitems, completed_at
+# IMPORTANT: Only include items that are done or deferred
+# has_open_subitems: true if item closed but still has open subitems (partial close)
+completed_items:
+```
+

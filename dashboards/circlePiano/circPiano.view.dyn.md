@@ -50,3 +50,15 @@ Note: In future versions we may allow the Dynamai Task to store the code and reu
 4. User switching to GS Wavetable radio button → retry MIDI connection.
 5. User switching to Web Audio radio button → drop to fallback immediately.
 6. Any MIDI send error mid-session → silently fall back to Web Audio, update dot.
+
+7. Instrument view: 
+
+- Always visible.
+- **Piano:** always enabled (Web Audio fallback works).
+
+- **Has MIDI** connection: All enabled.
+- **Missing MIDI** connection: 
+  - Disable: **Sax, Guitar, strum controls:** 
+  - Hover message: "Disabled. No MIDI available"
+
+Note: You may set the Guitar strum settings even when another instrument is selected. Actual strumming is heard only for the guitar. 

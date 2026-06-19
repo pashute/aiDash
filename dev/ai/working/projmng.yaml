@@ -1,12 +1,13 @@
 ```yaml
 # Filename: projmng.yaml
-# Version: 1.0.1
+# Version: 1.0.3
 # Updated at: feature start, item open, commit/push, item close, feature end.
 
 # repo
 project:
   owner: pashute
   repo: aiDash
+  version: 1.3
 
 # project management (github project board)
 projman:
@@ -34,21 +35,21 @@ feature:
 
 # active_item: current item being worked on.
 active_item:
-  num:
-  title:
-  url:
-  state:
-  stage:
-  milestone: {number: , title: , due: }
+  num: 5
+  title: mockTest
+  url: https://github.com/pashute/aiDash/issues/5
+  state: open
+  stage: in_progress
+  milestone: {number: 1, title: "try it out", due: }
   item_uid:
   subitems: []
   steps: []
 
 # parent_item: immediate parent. empty if active_item is the feature item itself
 parent_item:
-  num:
-  title:
-  url:
+  num: 1
+  title: feature/StepConsolidator
+  url: https://github.com/pashute/aiDash/issues/1
 
 # commits: log of all commits in this feature.
 #   each commit has: hash, headline, details[], filechanges[]
