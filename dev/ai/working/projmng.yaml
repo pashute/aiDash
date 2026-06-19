@@ -35,15 +35,17 @@ feature:
 
 # active_item: current item being worked on.
 active_item:
-  num: 5
-  title: mockTest
-  url: https://github.com/pashute/aiDash/issues/5
+  num: 6
+  title: projmng.mock.yaml
+  url: https://github.com/pashute/aiDash/issues/6
   state: open
   stage: in_progress
   milestone: {number: 1, title: "try it out", due: }
   item_uid:
   subitems: []
-  steps: []
+  steps:
+    - [ ] make a new file from vanilla `projmng.mock.yaml` in `/dev/ai/mock/working`
+    - [x] Fill it by simulating start feature which opens project (dyn already has process to fill it)
 
 # parent_item: immediate parent. empty if active_item is the feature item itself
 parent_item:

@@ -1,0 +1,76 @@
+# Filename: projmng.mock.yaml
+# Version: 1.0.3
+
+project:
+	owner: mock-user
+	repo: sudoku-app
+	version: 0.1
+
+projman:
+	num: 6
+	name: aiDash manage
+	uid: MOCK_PROJECT_UID
+	url: https://github.com/users/pashute/projects/6
+
+feature:
+	name: SudokuListInput
+	version: 0.1
+	branch: feature/SudokuListInput
+	item:
+		num: 106
+		title: feature/SudokuListInput
+		url: https://example.local/issues/106
+		state: open
+		stage: in_progress
+		milestone: {number: 1, title: "try it out", due: }
+
+active_item:
+	num: 116
+	title: add list-of-numbers input to sudoku entry
+	url: https://example.local/issues/116
+	state: open
+	stage: in_progress
+	milestone: {number: 1, title: "try it out", due: }
+	subitems:
+		- {num: 117, title: "Sleek looks", state: open}
+	steps:
+		offset_note: "Behavior and Test Driven Development as stated in Specs.md."
+		grid_instructions:
+			features:
+				- "f1. 9 digit text"
+				- "f2. comma separated trios: 100,328,905"
+				- "f3. space separated trios: 100 328 905"
+				- "f4. period-separated full grid string"
+				- "f5. as-you-type from current square"
+				- "f6. cut from grid"
+				- "f7. copy from grid"
+				- "f8. empty string input"
+				- "f9. alphabetic character rejection"
+				- "f10. wrong format or malformed groups"
+				- "f11. malformed groups rejection: 1a0 32 9050"
+				- "f12. mixed separators: 100, 328 905 (warn only if total digits=9, else reject)"
+				- "f13. paste with row overflow or wrong position (warn only if total digits=9, else reject)"
+			terms:
+				- "row"
+				- "col"
+				- "box"
+				- "square"
+				- "digit"
+				- "trio"
+				- "remaining digits"
+				- "missing digits"
+				- "forced digits"
+				- "done digits"
+				- "overwrite"
+				- "overflow"
+				- "empty"
+				- "alphabetic"
+				- "ascii"
+
+parent_item:
+	num: 106
+	title: feature/SudokuListInput
+	url: https://example.local/issues/106
+
+commits: []
+completed_items: []
